@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.davenonymous.integratedmanager.mixin",
+	"compatibilityLevel": "JAVA_8",
+	"refmap": "integratedmanager.refmap.json",
+	"mixins": [
+	],
+	"client": [
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

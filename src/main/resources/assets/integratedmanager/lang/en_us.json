@@ -1,0 +1,11 @@
+{
+	"itemGroup.integratedmanager": "Integrated Manager",
+	"item.integratedmanager.manager_tablet": "Manager Tablet",
+	"integratedmanager.network_analysis.error": "Not a valid Integrated Dynamics network",
+
+	"integratedmanager.message.unknown_variable_type": "Unknown variable type: %s",
+	"integratedmanager.message.unused_variables": "Unused variables",
+	"integratedmanager.message.scroll_for_aspect_details": "Scroll for aspect details",
+	"integratedmanager.message.scroll_to_select_then_click_to_place": "Scroll to select, then click to place",
+	"integratedmanager.message.scroll_to_select_then_choose_a_variable_to_connect": "Scroll to select, then choose a variable to connect"
+}
