@@ -38,7 +38,6 @@ public class ValueTypeTranslator {
 	private static final IValueType<ValueObjectTypeIngredients.ValueIngredients> valueObjectTypeIngredients;
 	private static final IValueType<ValueObjectTypeRecipe.ValueRecipe> valueObjectTypeRecipe;
 
-
 	static {
 
 		var idRegistryManager = IntegratedDynamicsAPI.getRegistryManager();
@@ -73,10 +72,9 @@ public class ValueTypeTranslator {
 
 
 	public static ValueData translateValueType(IValueType<?> valueType, IValue value) throws EvaluationException {
-		ValueData valueData = new ValueData(valueType, value);
+		ValueData valueData = new ValueData(valueType);
 
-
-		if(valueTypeOperator.correspondsTo(valueType)) {
+		if(valueType.correspondsTo(valueTypeOperator)) {
 			ValueTypeOperator.ValueOperator op = value.cast(valueTypeOperator);
 			valueData.valueTranslationKey = op.getRawValue().getTranslationKey();
 			valueData.stringValue = op.getRawValue().toString();

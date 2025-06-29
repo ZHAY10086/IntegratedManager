@@ -1,6 +1,7 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
 import com.davenonymous.integratedmanager.gui.WidgetFactories;
+import com.davenonymous.integratedmanager.integrated.common.TypeData;
 import com.davenonymous.integratedmanager.integrated.common.ValueData;
 import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.HBoxTooltipComponent;
@@ -53,6 +54,7 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 			ValueTypes.DOUBLE.getUniqueName(),
 			ValueTypes.LONG.getUniqueName()
 		);
+
 		if(variable.aspect != null && variable.valueData != null) {
 			ValueData value = variable.valueData;
 			ResourceLocation varType = variable.aspect;
@@ -80,9 +82,30 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 			);
 		}
 
+		if(variable.inputTypes != null && !variable.inputTypes.isEmpty()) {
+			int i = 1;
+			for(TypeData inputType : variable.inputTypes) {
+				String inputTypeName = I18n.exists(inputType.typeTranslationKey) ? I18n.get(inputType.typeTranslationKey) : inputType.valueType.toString();
+				String label = variable.inputTypes.size() > 1 ? "Input " + i + ":" : "Input:";
+				variableWidget.addTooltipElement(
+					WidgetFactories.Tooltips.labelValue(label, inputTypeName)
+				);
+				i++;
+			}
+		}
+
+		if(variable.outputType != null) {
+			String outputTypeName = I18n.exists(variable.outputType.typeTranslationKey) ? I18n.get(variable.outputType.typeTranslationKey) : variable.outputType.valueType.toString();
+			variableWidget.addTooltipElement(
+				WidgetFactories.Tooltips.labelValue("Output:", outputTypeName)
+			);
+		}
+
+
 		if(Minecraft.getInstance().options.advancedItemTooltips) {
 			variableWidget.addTooltipElement(
 				WidgetFactories.Tooltips.labelValue("Variable ID:", variable.id),
+				WidgetFactories.Tooltips.labelValue("Class:", variable.facadeClassName),
 				WidgetFactories.Tooltips.labelValue(I18n.get("aspect.integrateddynamics.name") + ":", variable.aspect),
 				WidgetFactories.Tooltips.labelValue(I18n.get("valuetype.integrateddynamics.value_type") + ":", variable.type),
 				WidgetFactories.Tooltips.labelValue(I18n.get("aspect.integrateddynamics.read.any.network.value") + ":", variable.valueData.stringValue)

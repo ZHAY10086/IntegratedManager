@@ -209,9 +209,20 @@ public class NetworkAnalysis {
 							operatorRegistry
 						);
 
-						variableData.translationKey = operatorVariableFacade.getOperator().getTranslationKey();
+						var operator = operatorVariableFacade.getOperator();
+
+						variableData.translationKey = operator.getTranslationKey();
 						variableData.variableStack = fakeVariableStack.isEmpty() ? new ItemStack(RegistryEntries.ITEM_VARIABLE) : fakeVariableStack;
-						variableData.aspect = operatorVariableFacade.getOperator().getUniqueName();
+						variableData.aspect = operator.getUniqueName();
+
+						for (IValueType<?> inputType : operator.getInputTypes()) {
+							variableData.addInputType(inputType);
+						}
+
+						if (operator.getOutputType() != null) {
+							variableData.outputType = new TypeData(operator.getOutputType());
+						}
+
 
 						for(var id : operatorVariableFacade.getVariableIds()) {
 							variableData.referencedVariableIds.add(id);
