@@ -271,6 +271,7 @@ public class NetworkAnalysis {
 				partData.targetPos = targetPos.getBlockPos();
 				partData.targetSide = targetSide;
 				Level targetLevel = targetPos.getLevel(true);
+				partData.level = targetPos.getLevel();
 				if (targetLevel != null) {
 					BlockState targetState = targetLevel.getBlockState(partData.targetPos);
 					partData.targetStack = new ItemStack(targetState.getBlock());

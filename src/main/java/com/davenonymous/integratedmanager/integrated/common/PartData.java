@@ -14,6 +14,7 @@ public class PartData {
 	public BlockPos targetPos = BlockPos.ZERO;
 	public Direction targetSide = null;
 	public ItemStack targetStack = ItemStack.EMPTY;
+	public String level;
 
 	public PartData() {
 	}
@@ -30,6 +31,9 @@ public class PartData {
 		}
 		if (buf.readBoolean()) {
 			this.targetStack = ItemStack.STREAM_CODEC.decode(buf);
+		}
+		if (buf.readBoolean()) {
+			this.level = buf.readUtf(256); // Read level name, if present
 		}
 	}
 
@@ -52,6 +56,12 @@ public class PartData {
 		if (!targetStack.isEmpty()) {
 			buf.writeBoolean(true);
 			ItemStack.STREAM_CODEC.encode(buf, targetStack);
+		} else {
+			buf.writeBoolean(false);
+		}
+		if (level != null && !level.isEmpty()) {
+			buf.writeBoolean(true);
+			buf.writeUtf(level, 256); // Write level name, if present
 		} else {
 			buf.writeBoolean(false);
 		}
