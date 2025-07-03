@@ -32,6 +32,8 @@ public class Widget {
 	boolean renderDebugOutlines = false;
 	Widget parent;
 
+	int actualTooltipWidth = 0;
+
 	List<Either<Component, TooltipComponent>> tooltipElements = new ArrayList<>();
 
 	Map<Class<? extends IEvent>, List<IWidgetListener>> eventListeners = new HashMap<>();
@@ -80,6 +82,15 @@ public class Widget {
 				return WidgetEventResult.CONTINUE_PROCESSING;
 			}
 		);
+	}
+
+	public Widget setActualTooltipWidth(int actualTooltipWidth) {
+		this.actualTooltipWidth = actualTooltipWidth;
+		return this;
+	}
+
+	public int getActualTooltipWidth() {
+		return actualTooltipWidth;
 	}
 
 	@Override

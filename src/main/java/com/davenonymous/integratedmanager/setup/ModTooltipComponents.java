@@ -26,5 +26,8 @@ public class ModTooltipComponents {
 		event.register(RedstoneModeTooltipComponent.class, Function.identity());
 		event.register(ScrollableTooltipComponent.class, Function.identity());
 		event.register(ColorDisplayTooltipComponent.class, Function.identity());
+		event.register(LineSeparatorTooltipComponent.class, Function.identity());
+		event.register(LabeledLineSeparatorTooltipComponent.class, Function.identity());
+		event.register(TableTooltipComponent.class, Function.identity());
 	}
 }

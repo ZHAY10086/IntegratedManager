@@ -1,10 +1,10 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
+import com.davenonymous.integratedmanager.gui.AllElementsReceivedEvent;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.PartData;
 import com.davenonymous.integratedmanager.lib.gui.ColorHelper;
-import com.davenonymous.integratedmanager.lib.gui.event.GuiDataUpdatedEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
@@ -92,7 +92,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 		this.nodeGraph.setSize(1024, 1024);
 
 		this.addListener(
-			GuiDataUpdatedEvent.class, (event, widget) -> {
+			AllElementsReceivedEvent.class, (event, widget) -> {
 				var elements = NetworkData.cache().elementDataList;
 				for(NetworkElementData element : elements) {
 					Widget elementWidget = null;

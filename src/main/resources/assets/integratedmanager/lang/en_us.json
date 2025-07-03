@@ -3,6 +3,7 @@
 	"item.integratedmanager.manager_tablet": "Manager Tablet",
 	"integratedmanager.network_analysis.error": "Not a valid Integrated Dynamics network",
 
+	"integratedmanager.message.advanced_tooltips": "Extra Infos (F3+H to toggle)",
 	"integratedmanager.message.unknown_variable_type": "Unknown variable type: %s",
 	"integratedmanager.message.unused_variables": "Unused variables",
 	"integratedmanager.message.scroll_for_aspect_details": "Scroll for aspect details",

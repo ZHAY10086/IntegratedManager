@@ -1,19 +1,17 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
 import com.davenonymous.integratedmanager.gui.WidgetFactories;
+import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.TypeData;
 import com.davenonymous.integratedmanager.integrated.common.ValueData;
 import com.davenonymous.integratedmanager.integrated.common.VariableData;
-import com.davenonymous.integratedmanager.lib.gui.tooltip.HBoxTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.LabeledLineSeparatorTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.TableTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.WrappedStringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetItemStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.resources.ResourceLocation;
-import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypes;
-
-import java.util.Set;
 
 public class VariableFacadeWidget extends NodeWidget<VariableData> {
 	WidgetItemStack variableWidget;
@@ -24,91 +22,141 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 
 		variableWidget = new WidgetItemStack(variable.variableStack.copy());
 		variableWidget.setDrawTooltip(false);
-		boolean hasDescription = I18n.exists(variable.translationKey + ".info");
-		boolean hasName = I18n.exists(variable.translationKey);
+		variableWidget.setTooltipElements(WidgetFactories.Tooltips.variableHeader(variable, false));
 
-		String heading;
-		if(hasName && hasDescription) {
-			heading = I18n.get(variable.translationKey) + ":";
-		} else if(hasName) {
-			heading = I18n.get(variable.translationKey) + ":";
-		} else if(hasDescription) {
-			heading = I18n.get(variable.translationKey + ".info");
-		} else {
-			heading = I18n.get("integratedmanager.message.unknown_variable_type", variable.type);
-		}
+		boolean isValueType = variable.facadeClassName.equals("ValueTypeVariableFacade");
+		if(!isValueType) {
+			TableTooltipComponent table = new TableTooltipComponent();
 
-		if(!variable.label.isBlank()) {
-			variableWidget.setTooltipElements(
-				WrappedStringTooltipComponent.yellow(variable.label)
-			);
-		} else {
-			variableWidget.setTooltipElements();
-		}
+			if(variable.inputTypes != null && !variable.inputTypes.isEmpty()) {
+				int i = 1;
+				for(TypeData inputType : variable.inputTypes) {
+					String inputTypeName = I18n.exists(inputType.typeTranslationKey) ? I18n.get(inputType.typeTranslationKey) : inputType.valueType.toString();
+					String label = variable.inputTypes.size() > 1 ? "Input " + i + ":" : "Input:";
+					boolean isAnyType = inputType.typeTranslationKey.equals("valuetype.integrateddynamics.any");
 
-		Set<ResourceLocation> labelOperators = Set.of(
-			ValueTypes.OPERATOR.getUniqueName(),
-			ValueTypes.BOOLEAN.getUniqueName(),
-			ValueTypes.INTEGER.getUniqueName(),
-			ValueTypes.STRING.getUniqueName(),
-			ValueTypes.DOUBLE.getUniqueName(),
-			ValueTypes.LONG.getUniqueName()
-		);
+					if(variable.referencedVariableIds.size() > i - 1) {
+						int referencedVariableId = variable.referencedVariableIds.get(i - 1);
+						VariableData referencedVariable = NetworkData.cache().variableDataById.get(referencedVariableId);
+						if(referencedVariable != null) {
 
-		if(variable.aspect != null && variable.valueData != null) {
-			ValueData value = variable.valueData;
-			ResourceLocation varType = variable.aspect;
-			String translatedValue = I18n.exists(value.valueTranslationKey) ? I18n.get(value.valueTranslationKey) : value.stringValue;
-			String translatedType = I18n.exists(value.typeTranslationKey) ? I18n.get(value.typeTranslationKey) : value.valueType.toString();
+							if(referencedVariable.valueData != null) {
 
-			boolean showTranslatedValue = labelOperators.contains(varType) || (hasName && hasDescription);
-			if(showTranslatedValue) {
-				variableWidget.addTooltipElement(
-					WidgetFactories.Tooltips.headingValue(heading, translatedValue)
-				);
-			} else {
-				variableWidget.addTooltipElement(
-					StringTooltipComponent.white(heading)
+								ValueData value = referencedVariable.valueData;
+								String translatedType = I18n.exists(value.typeTranslationKey) ? I18n.get(value.typeTranslationKey) : value.valueType.toString();
+								String translatedValue = I18n.exists(value.valueTranslationKey) ? I18n.get(value.valueTranslationKey) : value.stringValue;
+
+								table.addRow(
+									StringTooltipComponent.cyan(label),
+									StringTooltipComponent.orange(translatedType + (isAnyType ? "*" : "")),
+									WrappedStringTooltipComponent.green(translatedValue)
+
+								);
+							} else {
+								table.addRow(
+									StringTooltipComponent.cyan(label),
+									StringTooltipComponent.orange(inputTypeName)
+								);
+							}
+
+						}
+					} else {
+						table.addRow(
+							StringTooltipComponent.cyan(label),
+							StringTooltipComponent.orange(inputTypeName)
+						);
+					}
+					i++;
+				}
+			}
+
+			if(variable.outputType != null) {
+				String outputTypeName = I18n.exists(variable.outputType.typeTranslationKey)
+										? I18n.get(variable.outputType.typeTranslationKey)
+										: variable.outputType.valueType.toString();
+				boolean isAnyType = variable.outputType.typeTranslationKey.equals("valuetype.integrateddynamics.any");
+				if(variable.valueData != null) {
+					ValueData value = variable.valueData;
+					String translatedType = I18n.exists(value.typeTranslationKey) ? I18n.get(value.typeTranslationKey) : value.valueType.toString();
+					String translatedValue = I18n.exists(value.valueTranslationKey) ? I18n.get(value.valueTranslationKey) : value.stringValue;
+
+					table.addRow(
+						StringTooltipComponent.cyan("Output:"),
+						StringTooltipComponent.orange(translatedType + (isAnyType ? "*" : "")),
+						WrappedStringTooltipComponent.green(translatedValue)
+					);
+				} else {
+					table.addRow(
+						StringTooltipComponent.cyan("Output:"),
+						StringTooltipComponent.orange(outputTypeName)
+					);
+				}
+			} else if(variable.valueData != null) {
+				ValueData value = variable.valueData;
+				String translatedType = I18n.exists(value.typeTranslationKey) ? I18n.get(value.typeTranslationKey) : value.valueType.toString();
+				String translatedValue = I18n.exists(value.valueTranslationKey) ? I18n.get(value.valueTranslationKey) : value.stringValue;
+
+				table.addRow(
+					StringTooltipComponent.cyan("Output:"),
+					StringTooltipComponent.orange(translatedType),
+					WrappedStringTooltipComponent.green(translatedValue)
 				);
 			}
 
-			if(hasName && hasDescription) {
-				WrappedStringTooltipComponent valueTooltip = WrappedStringTooltipComponent.orange(I18n.get(variable.translationKey + ".info"));
-				variableWidget.addTooltipElement(valueTooltip);
-			}
 
-			variableWidget.addTooltipElement(
-				WidgetFactories.Tooltips.labelValue("Type:", translatedType)
-			);
-		}
 
-		if(variable.inputTypes != null && !variable.inputTypes.isEmpty()) {
-			int i = 1;
-			for(TypeData inputType : variable.inputTypes) {
-				String inputTypeName = I18n.exists(inputType.typeTranslationKey) ? I18n.get(inputType.typeTranslationKey) : inputType.valueType.toString();
-				String label = variable.inputTypes.size() > 1 ? "Input " + i + ":" : "Input:";
+			if(table.rows() > 0) {
 				variableWidget.addTooltipElement(
-					WidgetFactories.Tooltips.labelValue(label, inputTypeName)
+					new LabeledLineSeparatorTooltipComponent(variableWidget, "IO"),
+					table
 				);
-				i++;
 			}
 		}
 
-		if(variable.outputType != null) {
-			String outputTypeName = I18n.exists(variable.outputType.typeTranslationKey) ? I18n.get(variable.outputType.typeTranslationKey) : variable.outputType.valueType.toString();
-			variableWidget.addTooltipElement(
-				WidgetFactories.Tooltips.labelValue("Output:", outputTypeName)
-			);
-		}
+		TableTooltipComponent outputOperatorTable = new TableTooltipComponent();
+		if(variable.valueData != null && variable.valueData.typeTranslationKey.equals("valuetype.integrateddynamics.operator")) {
+			ValueData operatorValue = variable.valueData;
 
+			if(operatorValue.inputTypes != null && !operatorValue.inputTypes.isEmpty()) {
+				int i = 1;
+				for(TypeData inputType : operatorValue.inputTypes) {
+					String inputTypeName = I18n.exists(inputType.typeTranslationKey) ? I18n.get(inputType.typeTranslationKey) : inputType.valueType.toString();
+					String label = operatorValue.inputTypes.size() > 1 ? "Input " + i + ":" : "Input:";
+
+					outputOperatorTable.addRow(
+						StringTooltipComponent.cyan(label),
+						StringTooltipComponent.orange(inputTypeName)
+					);
+
+					i++;
+				}
+			}
+
+			if(operatorValue.outputType != null) {
+				String outputTypeName = I18n.exists(operatorValue.outputType.typeTranslationKey)
+										? I18n.get(operatorValue.outputType.typeTranslationKey)
+										: operatorValue.outputType.valueType.toString();
+				outputOperatorTable.addRow(
+					StringTooltipComponent.cyan("Output:"),
+					StringTooltipComponent.orange(outputTypeName)
+				);
+			}
+
+			if(outputOperatorTable.rows() > 0) {
+				variableWidget.addTooltipElement(
+					new LabeledLineSeparatorTooltipComponent(variableWidget, "Output Operator"),
+					outputOperatorTable
+				);
+			}
+		}
 
 		if(Minecraft.getInstance().options.advancedItemTooltips) {
 			variableWidget.addTooltipElement(
+				LabeledLineSeparatorTooltipComponent.advancedInfos(variableWidget),
 				WidgetFactories.Tooltips.labelValue("Variable ID:", variable.id),
 				WidgetFactories.Tooltips.labelValue("Class:", variable.facadeClassName),
 				WidgetFactories.Tooltips.labelValue(I18n.get("aspect.integrateddynamics.name") + ":", variable.aspect),
-				WidgetFactories.Tooltips.labelValue(I18n.get("valuetype.integrateddynamics.value_type") + ":", variable.type),
-				WidgetFactories.Tooltips.labelValue(I18n.get("aspect.integrateddynamics.read.any.network.value") + ":", variable.valueData.stringValue)
+				WidgetFactories.Tooltips.labelValue(I18n.get("valuetype.integrateddynamics.value_type") + ":", variable.type)
 			);
 		}
 

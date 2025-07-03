@@ -1,6 +1,7 @@
 package com.davenonymous.integratedmanager.integrated.client;
 
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
+import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import net.minecraft.core.BlockPos;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class NetworkData {
 	public int usedVariables = 0;
 	public int freeVariables = 0;
 
+	public Map<Integer, VariableData> variableDataById = new HashMap<>();
 	public Map<Integer, NetworkElementData> elementDataById = new HashMap<>();
 	public Map<Integer, NetworkElementData> elementDataByPartId = new HashMap<>();
 	public Map<BlockPos, NetworkElementData> elementDataByPosition = new HashMap<>();
@@ -43,6 +45,7 @@ public class NetworkData {
 		this.elementDataByPosition.clear();
 		this.elementDataByPartId.clear();
 		this.elementDataList.clear();
+		this.variableDataById.clear();
 		this.minX = Integer.MAX_VALUE;
 		this.minY = Integer.MAX_VALUE;
 
@@ -54,6 +57,10 @@ public class NetworkData {
 			return; // Ignore null data
 		}
 		elementDataList.add(data);
+
+		for(VariableData variableData : data.variables) {
+			variableDataById.put(variableData.id, variableData);
+		}
 
 		if(data.id != -1) {
 			this.elementDataById.put(data.id, data);

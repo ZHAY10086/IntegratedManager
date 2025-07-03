@@ -1,7 +1,9 @@
 package com.davenonymous.integratedmanager.integrated.server;
 
 import com.davenonymous.integratedmanager.IntegratedManager;
+import com.davenonymous.integratedmanager.integrated.common.TypeData;
 import com.davenonymous.integratedmanager.integrated.common.ValueData;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -76,8 +78,16 @@ public class ValueTypeTranslator {
 
 		if(valueType.correspondsTo(valueTypeOperator)) {
 			ValueTypeOperator.ValueOperator op = value.cast(valueTypeOperator);
-			valueData.valueTranslationKey = op.getRawValue().getTranslationKey();
-			valueData.stringValue = op.getRawValue().toString();
+			var operator = op.getRawValue();
+			valueData.valueTranslationKey = operator.getTranslationKey();
+			valueData.stringValue = operator.toString();
+			for (IValueType<?> inputType : operator.getInputTypes()) {
+				valueData.addInputType(inputType);
+			}
+
+			if (operator.getOutputType() != null) {
+				valueData.outputType = new TypeData(operator.getOutputType());
+			}
 		} else if(valueType.correspondsTo(valueTypeBoolean)) {
 			ValueTypeBoolean.ValueBoolean boolValue = value.cast(valueTypeBoolean);
 			valueData.valueTranslationKey = boolValue.getRawValue() ? "general.integrateddynamics.true" : "general.integrateddynamics.false";
@@ -93,11 +103,22 @@ public class ValueTypeTranslator {
 			valueData.stringValue = String.valueOf(longValue.getRawValue());
 		} else if(valueType.correspondsTo(valueTypeString)) {
 			ValueTypeString.ValueString stringValue = value.cast(valueTypeString);
-			valueData.stringValue = "\"" + stringValue.getRawValue() + "\"";
+			valueData.stringValue = stringValue.getRawValue();
 		} else if(valueType.correspondsTo(valueTypeList)) {
 			ValueTypeList.ValueList<?, ?> listValue = value.cast(valueTypeList);
-			// TODO: Handle list values properly
-			valueData.stringValue = "List with " + listValue.getRawValue().getLength() + " elements";
+			int maxElements = 25; // Limit the number of elements we transfer to the client
+			for(IValue listElement : listValue.getRawValue()) {
+				try {
+					valueData.addListValue(translateValueType(listElement.getType(), listElement));
+					if(valueData.listValues.size() >= maxElements) {
+						break; // Stop adding elements if we reached the limit
+					}
+				} catch (EvaluationException e) {
+					IntegratedManager.LOGGER.error("Failed to translate list element value", e);
+				}
+			}
+			valueData.listType = new TypeData(listValue.getRawValue().getValueType());
+			valueData.stringValue = listValue.getRawValue().getLength() + " " + I18n.get(listValue.getRawValue().getValueType().getTranslationKey()) + "s";
 		} else if(valueType.correspondsTo(valueTypeNbt)) {
 			ValueTypeNbt.ValueNbt nbtValue = value.cast(valueTypeNbt);
 			if(nbtValue.getRawValue().isPresent()) {
@@ -109,12 +130,13 @@ public class ValueTypeTranslator {
 			if(rawValue.isPresent()) {
 				valueData.valueTranslationKey = rawValue.get().getBlock().getDescriptionId();
 				valueData.stringValue = rawValue.get().toString();
+				valueData.addItemStackValue(new ItemStack(rawValue.get().getBlock()));
 			}
-
 		} else if(valueType.correspondsTo(valueObjectTypeItemStack)) {
 			ValueObjectTypeItemStack.ValueItemStack itemStackValue = value.cast(valueObjectTypeItemStack);
 			valueData.stringValue = itemStackValue.getRawValue().toString();
 			valueData.valueTranslationKey = itemStackValue.getRawValue().getDescriptionId();
+			valueData.addItemStackValue(itemStackValue.getRawValue());
 		} else if(valueType.correspondsTo(valueObjectTypeEntity)) {
 			ValueObjectTypeEntity.ValueEntity entityValue = value.cast(valueObjectTypeEntity);
 			if(entityValue.getRawValue().isPresent()) {

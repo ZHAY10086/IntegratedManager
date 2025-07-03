@@ -6,13 +6,17 @@ import com.davenonymous.integratedmanager.lib.gui.widgets.IValueProvider;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPanel;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
@@ -91,6 +95,20 @@ public class GUI extends WidgetPanel {
 		}
 
 		Font font = screen.getMinecraft().font;
+		var formattedTooltip = hoveredWidget.getTooltipFormatted();
+		var maxWidth = Integer.MIN_VALUE;
+		for(Either<FormattedText, TooltipComponent> line : formattedTooltip) {
+			if(line.left().isPresent()) {
+				FormattedText text = line.left().get();
+				maxWidth = Math.max(maxWidth, font.width(text));
+			} else if(line.right().isPresent()) {
+				if(line.right().get() instanceof ClientTooltipComponent clientTooltipComponent) {
+					maxWidth = Math.max(maxWidth, clientTooltipComponent.getWidth(font));
+				}
+			}
+		}
+
+		hoveredWidget.setActualTooltipWidth(maxWidth);
 		pGuiGraphics.renderComponentTooltipFromElements(font, hoveredWidget.getTooltipFormatted(), mouseX, mouseY, ItemStack.EMPTY);
 	}
 

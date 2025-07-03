@@ -8,13 +8,22 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record StringTooltipComponent(String message, int color) implements SerializableTooltipComponent<StringTooltipComponent> {
+import java.util.Objects;
+
+public final class StringTooltipComponent implements SerializableTooltipComponent<StringTooltipComponent> {
 
 	public static final StreamCodec<FriendlyByteBuf, StringTooltipComponent> CODEC = StreamCodec.composite(
 		ByteBufCodecs.STRING_UTF8, StringTooltipComponent::message,
 		ByteBufCodecs.INT, StringTooltipComponent::color,
 		StringTooltipComponent::new
 	);
+	public String message;
+	public int color;
+
+	public StringTooltipComponent(String message, int color) {
+		this.message = message;
+		this.color = color;
+	}
 
 	public static final StringTooltipComponent white(String message) {
 		return new StringTooltipComponent(message, ChatFormatting.WHITE.getColor());
@@ -59,4 +68,38 @@ public record StringTooltipComponent(String message, int color) implements Seria
 	public StreamCodec<FriendlyByteBuf, StringTooltipComponent> getCodec() {
 		return CODEC;
 	}
+
+	public String message() {
+		return message;
+	}
+
+	public int color() {
+		return color;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj == this) {
+			return true;
+		}
+		if(obj == null || obj.getClass() != this.getClass()) {
+			return false;
+		}
+		var that = (StringTooltipComponent) obj;
+		return Objects.equals(this.message, that.message) &&
+			this.color == that.color;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(message, color);
+	}
+
+	@Override
+	public String toString() {
+		return "StringTooltipComponent[" +
+			"message=" + message + ", " +
+			"color=" + color + ']';
+	}
+
 }

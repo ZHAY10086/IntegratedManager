@@ -6,9 +6,9 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 
 public class ColorDisplayTooltipComponent implements TooltipComponent, ClientTooltipComponent {
-	private final int color;
-	private final int width;
-	private final int height;
+	public int color;
+	public int width;
+	public int height;
 
 	public ColorDisplayTooltipComponent(int color, int width, int height) {
 		this.color = color;

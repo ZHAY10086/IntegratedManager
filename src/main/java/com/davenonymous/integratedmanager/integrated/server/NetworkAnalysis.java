@@ -223,7 +223,6 @@ public class NetworkAnalysis {
 							variableData.outputType = new TypeData(operator.getOutputType());
 						}
 
-
 						for(var id : operatorVariableFacade.getVariableIds()) {
 							variableData.referencedVariableIds.add(id);
 						}

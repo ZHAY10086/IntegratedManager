@@ -11,7 +11,9 @@ import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public record WrappedStringTooltipComponent(String message, int color, int maxWidth) implements SerializableTooltipComponent<WrappedStringTooltipComponent> {
+import java.util.Objects;
+
+public final class WrappedStringTooltipComponent implements SerializableTooltipComponent<WrappedStringTooltipComponent> {
 
 	public static final StreamCodec<FriendlyByteBuf, WrappedStringTooltipComponent> CODEC = StreamCodec.composite(
 		ByteBufCodecs.STRING_UTF8, WrappedStringTooltipComponent::message,
@@ -19,6 +21,15 @@ public record WrappedStringTooltipComponent(String message, int color, int maxWi
 		ByteBufCodecs.INT, WrappedStringTooltipComponent::maxWidth,
 		WrappedStringTooltipComponent::new
 	);
+	public String message;
+	public int color;
+	public int maxWidth;
+
+	public WrappedStringTooltipComponent(String message, int color, int maxWidth) {
+		this.message = message;
+		this.color = color;
+		this.maxWidth = maxWidth;
+	}
 
 	private static int defaultMaxWidth() {
 		return 240; //Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2;
@@ -79,4 +90,44 @@ public record WrappedStringTooltipComponent(String message, int color, int maxWi
 	public StreamCodec<FriendlyByteBuf, WrappedStringTooltipComponent> getCodec() {
 		return CODEC;
 	}
+
+	public String message() {
+		return message;
+	}
+
+	public int color() {
+		return color;
+	}
+
+	public int maxWidth() {
+		return maxWidth;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj == this) {
+			return true;
+		}
+		if(obj == null || obj.getClass() != this.getClass()) {
+			return false;
+		}
+		var that = (WrappedStringTooltipComponent) obj;
+		return Objects.equals(this.message, that.message) &&
+			this.color == that.color &&
+			this.maxWidth == that.maxWidth;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(message, color, maxWidth);
+	}
+
+	@Override
+	public String toString() {
+		return "WrappedStringTooltipComponent[" +
+			"message=" + message + ", " +
+			"color=" + color + ", " +
+			"maxWidth=" + maxWidth + ']';
+	}
+
 }
