@@ -186,6 +186,7 @@ neoForge.ideSyncTask generateModMetadata
 publishing {
     publications {
         register('mavenJava', MavenPublication) {
+            artifactId = mod_id
             from components.java
         }
     }
@@ -194,8 +195,8 @@ publishing {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/davenonymous/integratedmanager")
             credentials {
-                username = System.getenv("USERNAME")
-                password = System.getenv("TOKEN")
+                username = project.ext.ghUsername
+                password = project.ext.ghToken
             }
         }
     }
