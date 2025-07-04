@@ -15,6 +15,7 @@ import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPanningPanel;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphAlgorithms;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphHelpers;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.ConstrainedGraphEdge;
+import com.davenonymous.integratedmanager.setup.config.DebugConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import org.joml.Vector2f;
@@ -212,8 +213,12 @@ public class ManagerPanel extends WidgetPanningPanel {
 					}
 				}
 
-				nodeGraph.runIterations(1000);
-				nodeGraph.runUntilSettled(5000);
+				if(DebugConfig.settleGraph) {
+					nodeGraph.runIterations(DebugConfig.settleInitialSteps);
+					nodeGraph.runUntilSettled(DebugConfig.settleOptionalSteps);
+				}
+
+				this.freezeActivity(!DebugConfig.autoAdvanceGraph);
 				this.centerOnCanvas();
 
 				return WidgetEventResult.CONTINUE_PROCESSING;

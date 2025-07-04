@@ -8,5 +8,33 @@
 	"integratedmanager.message.unused_variables": "Unused variables",
 	"integratedmanager.message.scroll_for_aspect_details": "Scroll for aspect details",
 	"integratedmanager.message.scroll_to_select_then_click_to_place": "Scroll to select, then click to place",
-	"integratedmanager.message.scroll_to_select_then_choose_a_variable_to_connect": "Scroll to select, then choose a variable to connect"
+	"integratedmanager.message.scroll_to_select_then_choose_a_variable_to_connect": "Scroll to select, then choose a variable to connect",
+
+
+	"integratedmanager.configuration.title": "Integrated Manager Configuration",
+
+	"integratedmanager.configuration.debug": "Debug",
+	"integratedmanager.configuration.debug.tooltip": "Options related to debugging and development.\nThese are mostly useful for debugging graph flow issues.",
+
+	"integratedmanager.configuration.debug.show_velocities": "Show Velocities",
+	"integratedmanager.configuration.debug.show_velocities.tooltip": "This will show the velocities of nodes in the network.",
+
+	"integratedmanager.configuration.debug.show_all_edges": "Show All Edges",
+	"integratedmanager.configuration.debug.show_all_edges.tooltip": "This will show all edges in the network, even those that are not relevant for Integrated Dynamics networks.",
+
+	"integratedmanager.configuration.debug.settle_graph": "Settle Graph",
+	"integratedmanager.configuration.debug.settle_graph.tooltip": "This will settle the graph, which means it will run the graph until it is stable.",
+
+	"integratedmanager.configuration.debug.auto_advance_graph": "Auto Advance Graph",
+	"integratedmanager.configuration.debug.auto_advance_graph.tooltip": "Automatically advance the graph.\nIf disabled, you will have to manually advance the graph with the Play button in the GUI.",
+
+	"integratedmanager.configuration.debug.settle_initial_steps": "Settle Initial Steps",
+	"integratedmanager.configuration.debug.settle_initial_steps.tooltip": "The number of steps to take when settling the graph initially.\nThis is only used if 'settleGraph' is enabled.",
+
+	"integratedmanager.configuration.debug.settle_optional_steps": "Settle Optional Steps",
+	"integratedmanager.configuration.debug.settle_optional_steps.tooltip": "The number of optional steps to take when settling the graph.\nThis is only used if 'settleGraph' is enabled.",
+
+
+
+	"--last-line-comma-protection--": ","
 }

@@ -142,10 +142,6 @@ public class WidgetNodeGraph extends WidgetPanel implements IGraphProvider {
 		}
 
 		for(IGraphEdge edge : this.edges) {
-			if(!edge.shouldRender()) {
-				continue;
-			}
-
 			var source = edge.source();
 			var target = edge.target();
 			if(source == null || target == null) {
@@ -157,6 +153,13 @@ public class WidgetNodeGraph extends WidgetPanel implements IGraphProvider {
 			int sourceY = source.y + source.height / 2;
 			int targetX = target.x + target.width / 2;
 			int targetY = target.y + target.height / 2;
+
+			if(!edge.shouldRender()) {
+				if(DebugConfig.showAllEdges) {
+					GUIHelper.drawLine(guiGraphics, sourceX, sourceY, targetX, targetY, 0x40CCCCCC);
+				}
+				continue;
+			}
 
 			GUIHelper.drawArrowLine(guiGraphics, sourceX, sourceY, targetX, targetY, 1.0f, edge.colorSource());
 		}

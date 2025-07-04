@@ -8,8 +8,10 @@ import com.davenonymous.integratedmanager.lib.gui.event.GuiDataUpdatedEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetGhostSlot;
+import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPlayButton;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetProgressBar;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetTextBox;
+import com.davenonymous.integratedmanager.setup.config.DebugConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
@@ -19,7 +21,7 @@ import org.cyclops.integrateddynamics.RegistryEntries;
 public class ManagerOverview extends WidgetFullScreen {
 	int sidePadding = 16;
 
-	WidgetGhostSlot variableSlot;
+	WidgetPlayButton playButton;
 	ManagerPanel managerPanel;
 	WidgetProgressBar progressBar;
 
@@ -31,7 +33,7 @@ public class ManagerOverview extends WidgetFullScreen {
 
 	protected void updateWidgetSizes() {
 		sidePadding = 8;
-		variableSlot.setPosition(this.width - 26 - sidePadding, 5);
+		playButton.setPosition(this.width - 26 - sidePadding, 5);
 		managerPanel.setDimensions(sidePadding, sidePadding + 16, this.width - (2*sidePadding), this.height - (2*sidePadding) - 16);
 	}
 
@@ -54,14 +56,18 @@ public class ManagerOverview extends WidgetFullScreen {
 		progressBar.setValue(66D);
 		gui.add(progressBar);
 
-		variableSlot = new WidgetGhostSlot(new ItemStack(RegistryEntries.ITEM_VARIABLE), false);
-		variableSlot.setDrawTooltip(false);
-		variableSlot.setEnabled(false);
-
-		gui.add(variableSlot);
-
 		managerPanel = new ManagerPanel();
+
 		gui.add(managerPanel);
+
+		playButton = new WidgetPlayButton(false, () -> {
+			managerPanel.freezeActivity(false);
+		}, () -> {
+			managerPanel.freezeActivity(true);
+		});
+		playButton.setEnabled(!DebugConfig.autoAdvanceGraph);
+		playButton.setVisible(!DebugConfig.autoAdvanceGraph);
+		gui.add(playButton);
 
 		gui.addListener(GuiDataUpdatedEvent.class, (event, widget) -> {
 			int totalParts = NetworkData.cache().totalParts;
@@ -71,13 +77,6 @@ public class ManagerOverview extends WidgetFullScreen {
 			progressBar.setRange(0d, (double)totalParts);
 			progressBar.setValue((double)NetworkData.cache().elementDataList.size());
 			progressBar.setTooltipLines(Component.literal("Elements: " + NetworkData.cache().elementDataList.size() + "/" + NetworkData.cache().totalParts));
-
-			variableSlot.setValue(
-				new ItemStack(variableSlot.getValue().getItem(), Math.max(NetworkData.cache().freeVariables, 1))
-			);
-			variableSlot.setTooltipElements(StringTooltipComponent.orange(
-				I18n.get("integratedmanager.message.unused_variables")
-			));
 			return WidgetEventResult.CONTINUE_PROCESSING;
 		});
 
