@@ -1,5 +1,6 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
+import com.davenonymous.integratedmanager.IntegratedManager;
 import com.davenonymous.integratedmanager.integrated.IDRegistries;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.server.ValueTypeTranslator;
@@ -178,6 +179,10 @@ public class VariableData {
 		if(variableFacade instanceof IProxyVariableFacade proxyVariableFacade) {
 			variableData.proxyId = proxyVariableFacade.getProxyId();
 			VariableData proxiedVariable = NetworkData.cache().variableDataByProxyId.get(variableData.proxyId);
+			if (proxiedVariable == null) {
+				IntegratedManager.LOGGER.warn("Proxy variable with ID {} not found in cache, this is likely a bug.", variableData.proxyId);
+				return variableData; // Return empty variable data if the proxied variable is not found
+			}
 			variableData.aspect = proxiedVariable.aspect;
 			variableData.valueData = proxiedVariable.valueData;
 			variableData.variableStack = proxiedVariable.variableStack;

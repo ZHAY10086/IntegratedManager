@@ -11,7 +11,6 @@ import com.davenonymous.integratedmanager.lib.gui.widgets.graph.IGraphProvider;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.ConstrainedGraphEdge;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.IGraphEdge;
 import com.davenonymous.integratedmanager.setup.config.DebugConfig;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import org.joml.Vector2f;
@@ -38,10 +37,6 @@ public class WidgetNodeGraph extends WidgetPanel implements IGraphProvider {
 		this.addListener(WidgetDrawEvent.class, ((event, widget) -> {
 			if(!freezeActivity && event.type() == WidgetDrawEvent.Type.PRE) {
 				this.algorithm.updatePositions(this);
-//				this.algorithm.updatePositions(this);
-//				this.algorithm.updatePositions(this);
-//				this.algorithm.updatePositions(this);
-//				this.algorithm.updatePositions(this);
 			}
 			return WidgetEventResult.CONTINUE_PROCESSING;
 		}));
@@ -59,6 +54,11 @@ public class WidgetNodeGraph extends WidgetPanel implements IGraphProvider {
 			}
 			return WidgetEventResult.CONTINUE_PROCESSING;
 		});
+	}
+
+	public WidgetNodeGraph setFreezeActivity(boolean freezeActivity) {
+		this.freezeActivity = freezeActivity;
+		return this;
 	}
 
 	public WidgetNodeGraph() {
@@ -121,7 +121,7 @@ public class WidgetNodeGraph extends WidgetPanel implements IGraphProvider {
 	public void draw(GuiGraphics guiGraphics, Screen screen) {
 		super.draw(guiGraphics, screen);
 
-		if(DebugConfig.showVelocities || true) {
+		if(DebugConfig.showVelocities) {
 			guiGraphics.pose().pushPose();
 			guiGraphics.pose().translate(0, 0, 100); // Ensure nodes are drawn above edges
 			for(Widget node : this.nodes().keySet()) {
@@ -160,5 +160,45 @@ public class WidgetNodeGraph extends WidgetPanel implements IGraphProvider {
 
 			GUIHelper.drawArrowLine(guiGraphics, sourceX, sourceY, targetX, targetY, 1.0f, edge.colorSource());
 		}
+	}
+
+	public void runIterations(int runs) {
+		if (runs <= 0 || freezeActivity) {
+			return; // No iterations to run
+		}
+
+		for(int i = 0; i < runs; i++) {
+			this.algorithm.updatePositions(this);
+		}
+	}
+
+	public void runUntilSettled(int maxIterations) {
+		if (maxIterations <= 0 || freezeActivity) {
+			return; // No iterations to run
+		}
+
+		int iterations = 0;
+		SETTLE: do {
+			this.algorithm.updatePositions(this);
+			for(Widget node : this.nodes().keySet()) {
+				float velocity = this.getNodeVelocity(node).length();
+				if(velocity > 0.025f) {
+					// If any node has a velocity greater than a small threshold, we consider the graph not settled
+					iterations++;
+					continue SETTLE;
+				}
+			}
+			break;
+		} while (iterations < maxIterations);
+
+		if (iterations >= maxIterations) {
+			IntegratedManager.LOGGER.warn("Node graph did not settle after {} iterations", maxIterations);
+		} else {
+			IntegratedManager.LOGGER.info("Node graph settled after {} iterations", iterations);
+		}
+	}
+
+	public boolean isFrozen() {
+		return this.freezeActivity;
 	}
 }

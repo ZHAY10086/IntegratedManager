@@ -225,7 +225,7 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 		integrateEdges(graph);
 		integrateCanvasBorders(graph);
 		//avoidNodesOnEdges(graph);
-		avoidCrossingEdges(graph);
+		//avoidCrossingEdges(graph);
 		applyForces(graph);
 	}
 }

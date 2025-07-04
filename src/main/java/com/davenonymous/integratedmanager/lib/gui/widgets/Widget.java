@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import org.joml.Vector2f;
 
 import java.util.*;
 
@@ -104,6 +105,12 @@ public class Widget {
 	@Override
 	public int hashCode() {
 		return id;
+	}
+
+	public Widget setPosition(Vector2f position) {
+		this.setX((int)position.x);
+		this.setY((int)position.y);
+		return this;
 	}
 
 	public Widget setPosition(int x, int y) {

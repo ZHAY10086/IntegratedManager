@@ -13,11 +13,14 @@ import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetNodeGraph;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPanningPanel;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphAlgorithms;
+import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphHelpers;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.ConstrainedGraphEdge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import org.joml.Vector2f;
 import org.joml.Vector2i;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +32,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 	Map<Integer, VariableFacadeWidget> variableWidgets;
 	Map<Integer, NetworkTileWidget> proxyWidgets;
 
-	public Widget addPartWidget(NetworkElementData data) {
+	public Widget addPartWidget(NetworkElementData data, int initialX, int initialY) {
 		PartData part = data.partData;
 		if(partWidgets.containsKey(data.partId)) {
 			return null;
@@ -37,8 +40,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 
 		NetworkPartWidget partWidget = new NetworkPartWidget(data);
 
-		Vector2i guessPosition = data.guessPosition(nodeGraph);
-		partWidget.setPosition(guessPosition.x, guessPosition.y);
+		partWidget.setPosition(initialX, initialY);
 		nodeGraph.add(partWidget);
 
 
@@ -46,7 +48,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 
 		if(!part.targetStack.isEmpty()) {
 			PartTargetWidget partTargetWidget = new PartTargetWidget(part);
-			partTargetWidget.setPosition(guessPosition.x + 16, guessPosition.y + 16);
+			partTargetWidget.setPosition(initialX + 16, initialY + 16);
 			nodeGraph.add(partTargetWidget);
 			ConstrainedGraphEdge edge;
 			if(part.writer) {
@@ -62,7 +64,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 		return partWidget;
 	}
 
-	public Widget addTileWidget(NetworkElementData data) {
+	public Widget addTileWidget(NetworkElementData data, int initialX, int initialY) {
 		TileData tileData = data.tileData;
 		if(tileData == null || data.position == null) {
 			return null; // No tile data or position
@@ -93,8 +95,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 			StringTooltipComponent.gray("Variables: " + data.variables.size())
 		);
 
-		Vector2i guessPosition = data.guessPosition(nodeGraph);
-		tileWidget.setPosition(guessPosition.x, guessPosition.y);
+		tileWidget.setPosition(initialX, initialY);
 		nodeGraph.add(tileWidget);
 
 		tileWidgets.put(data.position, tileWidget);
@@ -117,16 +118,27 @@ public class ManagerPanel extends WidgetPanningPanel {
 
 		this.addListener(
 			AllElementsReceivedEvent.class, (event, widget) -> {
+				int elementSize = 48;
+				Vector2f center = new Vector2f(
+					(nodeGraph.width / 2.0f),
+					(nodeGraph.height / 2.0f)
+				);
+
+				var spiral = new GraphHelpers.SpiralIterator(elementSize, center);
+
 				var elements = NetworkData.cache().elementDataList;
-				for(NetworkElementData element : elements) {
+				var sortedElements = elements.stream().sorted(Comparator.comparing(networkElementData -> networkElementData.position)).toList();
+				for(NetworkElementData element : sortedElements) {
 					Widget elementWidget = null;
 					if(element.partData != null) {
-						elementWidget = addPartWidget(element);
+						Vector2f bestPos = spiral.next();
+						elementWidget = addPartWidget(element, (int) bestPos.x, (int) bestPos.y);
 					} else if(element.tileData != null) {
-						elementWidget = addTileWidget(element);
+						Vector2f bestPos = spiral.next();
+						elementWidget = addTileWidget(element, (int) bestPos.x, (int) bestPos.y);
 					}
 
-					for(var variable : element.variables) {
+ 					for(var variable : element.variables) {
 						if(variable.id == -1) {
 							continue; // Skip variables that are not used
 						}
@@ -136,9 +148,9 @@ public class ManagerPanel extends WidgetPanningPanel {
 						}
 
 
-						var guessedPosition = element.guessPosition(nodeGraph);
 						VariableFacadeWidget variableWidget = new VariableFacadeWidget(variable);
-						variableWidget.setPosition(guessedPosition.x, guessedPosition.y);
+						variableWidget.setPosition(spiral.next());
+
 
 						nodeGraph.add(variableWidget);
 						variableWidgets.put(variable.id, variableWidget);
@@ -149,8 +161,8 @@ public class ManagerPanel extends WidgetPanningPanel {
 							edge.setColorSource(ColorHelper.COLOR_ORANGE);
 							nodeGraph.addEdge(edge);
 						}
-
 					}
+
 				}
 
 				for(NetworkElementData element : elements) {
@@ -200,6 +212,8 @@ public class ManagerPanel extends WidgetPanningPanel {
 					}
 				}
 
+				nodeGraph.runIterations(1000);
+				nodeGraph.runUntilSettled(5000);
 				this.centerOnCanvas();
 
 				return WidgetEventResult.CONTINUE_PROCESSING;
@@ -207,6 +221,15 @@ public class ManagerPanel extends WidgetPanningPanel {
 		);
 
 		this.add(nodeGraph);
+	}
+
+	public ManagerPanel freezeActivity(boolean state) {
+		this.nodeGraph.setFreezeActivity(state);
+		return this;
+	}
+
+	public boolean isFrozen() {
+		return this.nodeGraph.isFrozen();
 	}
 
 }

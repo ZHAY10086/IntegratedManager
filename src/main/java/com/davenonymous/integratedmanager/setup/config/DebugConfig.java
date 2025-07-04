@@ -13,7 +13,7 @@ public class DebugConfig {
 		SHOW_VELOCITIES = builder
 			.comment("Show velocity vectors in the manager GUI.")
 			.translation("integratedmanager.configuration.debug.show_velocities")
-			.define("showVelocities", true);
+			.define("showVelocities", false);
 
 		builder.pop();
 	}
