@@ -27,6 +27,7 @@ public class NetworkData {
 	public int usedVariables = 0;
 	public int freeVariables = 0;
 
+	public Map<Integer, VariableData> variableDataByProxyId = new HashMap<>();
 	public Map<Integer, VariableData> variableDataById = new HashMap<>();
 	public Map<Integer, NetworkElementData> elementDataById = new HashMap<>();
 	public Map<Integer, NetworkElementData> elementDataByPartId = new HashMap<>();
@@ -46,6 +47,7 @@ public class NetworkData {
 		this.elementDataByPartId.clear();
 		this.elementDataList.clear();
 		this.variableDataById.clear();
+		this.variableDataByProxyId.clear();
 		this.minX = Integer.MAX_VALUE;
 		this.minY = Integer.MAX_VALUE;
 
@@ -77,7 +79,26 @@ public class NetworkData {
 				minY = data.position.getY();
 			}
 		}
+	}
 
+	private void inferProxyVariables(NetworkElementData elementData) {
+		if(elementData.tileData == null || elementData.tileData.proxyId < 0) {
+			return;
+		}
+
+		if(elementData.variables.isEmpty()) {
+			return; // No variables, nothing to infer
+		}
+
+		int proxyId = elementData.tileData.proxyId;
+		VariableData proxyVariable = elementData.variables.get(0);
+		this.variableDataByProxyId.put(proxyId, proxyVariable);
+	}
+
+	public void inferValues() {
+		for(NetworkElementData elementData : elementDataList) {
+			inferProxyVariables(elementData);
+		}
 	}
 
 }

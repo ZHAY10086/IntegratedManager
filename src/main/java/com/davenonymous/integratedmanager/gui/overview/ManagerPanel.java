@@ -4,17 +4,18 @@ import com.davenonymous.integratedmanager.gui.AllElementsReceivedEvent;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.PartData;
+import com.davenonymous.integratedmanager.integrated.common.TileData;
+import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import com.davenonymous.integratedmanager.lib.gui.ColorHelper;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
-import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetItemStack;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetNodeGraph;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPanningPanel;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphAlgorithms;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.ConstrainedGraphEdge;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.BlockPos;
 import org.joml.Vector2i;
 
 import java.util.HashMap;
@@ -23,8 +24,10 @@ import java.util.Map;
 public class ManagerPanel extends WidgetPanningPanel {
 	WidgetNodeGraph nodeGraph;
 
+	Map<BlockPos, NetworkTileWidget> tileWidgets;
 	Map<Integer, NetworkPartWidget> partWidgets;
 	Map<Integer, VariableFacadeWidget> variableWidgets;
+	Map<Integer, NetworkTileWidget> proxyWidgets;
 
 	public Widget addPartWidget(NetworkElementData data) {
 		PartData part = data.partData;
@@ -60,6 +63,19 @@ public class ManagerPanel extends WidgetPanningPanel {
 	}
 
 	public Widget addTileWidget(NetworkElementData data) {
+		TileData tileData = data.tileData;
+		if(tileData == null || data.position == null) {
+			return null; // No tile data or position
+		}
+
+		if(tileWidgets.containsKey(data.position)) {
+			return null;
+		}
+
+		if(tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
+			return null;
+		}
+
 		var blockState = Minecraft.getInstance().level.getBlockState(data.position);
 		if(blockState.isAir()) {
 			return null; // No block at this position
@@ -70,8 +86,8 @@ public class ManagerPanel extends WidgetPanningPanel {
 			return null; // No tile entity at this position
 		}
 
-		var blockStack = new ItemStack(blockState.getBlock());
-		WidgetItemStack tileWidget = new WidgetItemStack(blockStack);
+		NetworkTileWidget tileWidget = new NetworkTileWidget(data);
+
 		tileWidget.addTooltipElement(
 			StringTooltipComponent.gray("Position: " + data.position),
 			StringTooltipComponent.gray("Variables: " + data.variables.size())
@@ -81,6 +97,12 @@ public class ManagerPanel extends WidgetPanningPanel {
 		tileWidget.setPosition(guessPosition.x, guessPosition.y);
 		nodeGraph.add(tileWidget);
 
+		tileWidgets.put(data.position, tileWidget);
+
+		if(tileData.proxyId >= 0) {
+			proxyWidgets.put(tileData.proxyId, tileWidget);
+		}
+
 		return tileWidget;
 	}
 
@@ -88,6 +110,8 @@ public class ManagerPanel extends WidgetPanningPanel {
 		super();
 		this.partWidgets = new HashMap<>();
 		this.variableWidgets = new HashMap<>();
+		this.tileWidgets = new HashMap<>();
+		this.proxyWidgets = new HashMap<>();
 		this.nodeGraph = new WidgetNodeGraph(GraphAlgorithms.INTEGRATE_THEN_APPLY.get());
 		this.nodeGraph.setSize(1024, 1024);
 
@@ -99,7 +123,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 					if(element.partData != null) {
 						elementWidget = addPartWidget(element);
 					} else if(element.tileData != null) {
-						//elementWidget = addTileWidget(element);
+						elementWidget = addTileWidget(element);
 					}
 
 					for(var variable : element.variables) {
@@ -159,6 +183,16 @@ public class ManagerPanel extends WidgetPanningPanel {
 								var edge = ConstrainedGraphEdge.createConstrainedEdge(partWidget, variableWidget, 32.0f);
 								edge.setShouldRender(true);
 								edge.setColorSource(ColorHelper.COLOR_CYAN);
+								nodeGraph.addEdge(edge);
+							}
+						}
+
+						if(variable.proxyId >= 0) {
+							NetworkTileWidget proxyWidget = proxyWidgets.get(variable.proxyId);
+							if(proxyWidget != null) {
+								var edge = ConstrainedGraphEdge.createConstrainedEdge(proxyWidget, variableWidget, 32.0f);
+								edge.setShouldRender(true);
+								edge.setColorSource(ColorHelper.COLOR_PURPLE);
 								nodeGraph.addEdge(edge);
 							}
 						}

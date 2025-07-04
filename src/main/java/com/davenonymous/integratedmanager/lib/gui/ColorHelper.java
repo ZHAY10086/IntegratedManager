@@ -10,6 +10,7 @@ public class ColorHelper {
 	public static final int COLOR_GREEN = 0xFF48BB3C;
 	public static final int COLOR_ORANGE = 0xFFE6B300;
 	public static final int COLOR_CYAN = 0xFF00A6BE;
+	public static final int COLOR_PURPLE = 0xFF9B59B6;
 
 	public static Color COLOR_ENABLED = new Color(50, 125, 50);
 	public static Color COLOR_DISABLED = new Color(160, 160, 160, 255);

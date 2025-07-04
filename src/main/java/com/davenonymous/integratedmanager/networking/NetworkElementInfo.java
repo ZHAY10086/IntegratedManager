@@ -35,6 +35,8 @@ public record NetworkElementInfo(NetworkElementData data) implements CustomPacke
 		boolean haveAllParts = NetworkData.cache().elementDataList.size() == NetworkData.cache().totalParts;
 
 		if(haveAllParts) {
+			NetworkData.cache().inferValues();
+
 			if(Minecraft.getInstance().screen instanceof ManagerOverview managerScreen) {
 				managerScreen.getOrCreateGui().fireEvent(new AllElementsReceivedEvent());
 			}

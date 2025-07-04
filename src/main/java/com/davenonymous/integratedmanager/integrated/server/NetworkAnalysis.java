@@ -1,13 +1,16 @@
 package com.davenonymous.integratedmanager.integrated.server;
 
 import com.davenonymous.integratedmanager.IntegratedManager;
+import com.davenonymous.integratedmanager.integrated.IDRegistries;
 import com.davenonymous.integratedmanager.integrated.common.*;
 import com.davenonymous.integratedmanager.networking.NetworkElementInfo;
 import com.davenonymous.integratedmanager.networking.NetworkMasterInfo;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,6 +22,7 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.cyclops.cyclopscore.datastructure.DimPos;
 import org.cyclops.cyclopscore.helper.BlockEntityHelpers;
+import org.cyclops.cyclopscore.init.RegistryManager;
 import org.cyclops.integrateddynamics.Capabilities;
 import org.cyclops.integrateddynamics.RegistryEntries;
 import org.cyclops.integrateddynamics.api.IntegratedDynamicsAPI;
@@ -26,9 +30,7 @@ import org.cyclops.integrateddynamics.api.block.IVariableContainer;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.IValueInterface;
 import org.cyclops.integrateddynamics.api.evaluate.operator.IOperatorRegistry;
-import org.cyclops.integrateddynamics.api.evaluate.variable.IValue;
-import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
-import org.cyclops.integrateddynamics.api.evaluate.variable.IValueTypeRegistry;
+import org.cyclops.integrateddynamics.api.evaluate.variable.*;
 import org.cyclops.integrateddynamics.api.item.*;
 import org.cyclops.integrateddynamics.api.network.*;
 import org.cyclops.integrateddynamics.api.part.*;
@@ -37,6 +39,7 @@ import org.cyclops.integrateddynamics.api.part.aspect.IAspectRegistry;
 import org.cyclops.integrateddynamics.api.part.aspect.IAspectWrite;
 import org.cyclops.integrateddynamics.api.part.read.IPartTypeReader;
 import org.cyclops.integrateddynamics.api.part.write.IPartTypeWriter;
+import org.cyclops.integrateddynamics.blockentity.BlockEntityProxy;
 import org.cyclops.integrateddynamics.blockentity.BlockEntityVariablestore;
 import org.cyclops.integrateddynamics.core.network.TileNetworkElement;
 
@@ -94,30 +97,7 @@ public class NetworkAnalysis {
 		this.networkElements = new ArrayList<>();
 
 
-		var idRegistryManager = IntegratedDynamicsAPI.getRegistryManager();
-		var facadeHandlerRegistry = idRegistryManager.getRegistry(IVariableFacadeHandlerRegistry.class);
-		if (facadeHandlerRegistry == null) {
-			IntegratedManager.LOGGER.warn("No VariableFacadeHandlerRegistry found, cannot analyze variables.");
-			return;
-		}
 
-		IValueTypeRegistry valueTypeRegistry = idRegistryManager.getRegistry(IValueTypeRegistry.class);
-		if(valueTypeRegistry == null) {
-			IntegratedManager.LOGGER.warn("No ValueTypeRegistry found, cannot analyze variables.");
-			return;
-		}
-
-		IOperatorRegistry operatorRegistry = idRegistryManager.getRegistry(IOperatorRegistry.class);
-		if(operatorRegistry == null) {
-			IntegratedManager.LOGGER.warn("No OperatorRegistry found, cannot analyze operators.");
-			return;
-		}
-
-		IAspectRegistry aspectRegistry = idRegistryManager.getRegistry(IAspectRegistry.class);
-		if(aspectRegistry == null) {
-			IntegratedManager.LOGGER.warn("No AspectRegistry found, cannot analyze aspects.");
-			return;
-		}
 
 		DataComponentType<?> facadeComponentType = BuiltInRegistries.DATA_COMPONENT_TYPE.get(
 			ResourceLocation.fromNamespaceAndPath("integrateddynamics", "variable_facade"));
@@ -148,11 +128,21 @@ public class NetworkAnalysis {
 
 
 			if(networkElement instanceof TileNetworkElement<?> tileNetworkElement) {
-				networkElementData.tileData = new TileData();
-				if(tileNetworkElement.getPos().isLoaded()) {
-					var level = tileNetworkElement.getPos().getLevel(false);
-					if(level != null) {
+				var tileData = new TileData();
+				Level level = tileNetworkElement.getPos().getLevel(true);
+				if(level != null) {
+					tileData.level = level.dimension().location().toString();
+					if(tileNetworkElement.getPos().isLoaded()) {
+						var blockState = level.getBlockState(tileNetworkElement.getPos().getBlockPos());
+						if(!blockState.isAir()) {
+							tileData.tileStack = new ItemStack(blockState.getBlock());
+						}
+
 						var blockEntity = level.getBlockEntity(tileNetworkElement.getPos().getBlockPos());
+						if(blockEntity != null) {
+							tileData.blockEntityClass = blockEntity.getClass().getSimpleName();
+						}
+
 						if(blockEntity instanceof BlockEntityVariablestore varStore) {
 							var inventory = varStore.getInventory();
 							for(int i = 0; i < inventory.getItemHandler().getSlots(); i++) {
@@ -166,78 +156,42 @@ public class NetworkAnalysis {
 								}
 							}
 						}
+
+						if(blockEntity instanceof BlockEntityProxy proxy) {
+							tileData.proxyId = proxy.getProxyId();
+							var inventory = proxy.getInventory();
+
+							for(int i = 0; i < inventory.getItemHandler().getSlots(); i++) {
+								ItemStack stack = inventory.getItemHandler().getStackInSlot(i);
+								if(stack.isEmpty() || !stack.is(RegistryEntries.ITEM_VARIABLE)) {
+									continue;
+								}
+
+								IVariableFacadeHolder facadeHolder = stack.getCapability(Capabilities.VariableFacade.ITEM);
+								if(facadeHolder == null) {
+									continue;
+								}
+
+								IVariableFacade variableFacade = facadeHolder.getVariableFacade(ValueDeseralizationContext.of(Minecraft.getInstance().level));
+								if(variableFacade == null) {
+									continue;
+								}
+
+								VariableData tileVariableData = VariableData.fromFacade(variableFacade, network, partNetwork);
+								networkElementData.variables.add(tileVariableData);
+							}
+						}
 					}
 				}
+
+				networkElementData.tileData = tileData;
 			}
 
 			Optional<IVariableContainer> variableHolder = getNetworkElementCapability(networkElement, Capabilities.VariableContainer.BLOCK);
 			if(variableHolder.isPresent()) {
 				IVariableContainer variableContainer = variableHolder.get();
 				for(IVariableFacade variableFacade : variableContainer.getVariableCache().values()) {
-					var variable = variableFacade.getVariable(network, partNetwork);
-					VariableData variableData = new VariableData(variableFacade, variable);
-
-					if(variableFacade instanceof IProxyVariableFacade proxyVariableFacade) {
-						variable = proxyVariableFacade.getVariable(network, partNetwork);
-					}
-
-					try {
-						IValue value = variable.getValue();
-						IValueType<?> valueType = value.getType();
-
-						variableData.valueData = ValueTypeTranslator.translateValueType(valueType, value);
-					} catch (EvaluationException e) {
-						variableData.valueData = null;
-					}
-
-					if(variableFacade instanceof IAspectVariableFacade aspectVariableFacade) {
-						ItemStack fakeVariableStack = facadeHandlerRegistry.writeVariableFacadeItem(
-							new ItemStack(RegistryEntries.ITEM_VARIABLE),
-							aspectVariableFacade,
-							aspectRegistry
-						);
-						variableData.translationKey = aspectVariableFacade.getAspect().getTranslationKey();
-						variableData.variableStack = fakeVariableStack.isEmpty() ? new ItemStack(RegistryEntries.ITEM_VARIABLE) : fakeVariableStack;
-						variableData.aspect = aspectVariableFacade.getAspect().getUniqueName();
-						variableData.referencedPartIds.add(aspectVariableFacade.getPartId());
-					}
-
-					if(variableFacade instanceof IOperatorVariableFacade operatorVariableFacade) {
-						ItemStack fakeVariableStack = facadeHandlerRegistry.writeVariableFacadeItem(
-							new ItemStack(RegistryEntries.ITEM_VARIABLE),
-							operatorVariableFacade,
-							operatorRegistry
-						);
-
-						var operator = operatorVariableFacade.getOperator();
-
-						variableData.translationKey = operator.getTranslationKey();
-						variableData.variableStack = fakeVariableStack.isEmpty() ? new ItemStack(RegistryEntries.ITEM_VARIABLE) : fakeVariableStack;
-						variableData.aspect = operator.getUniqueName();
-
-						for (IValueType<?> inputType : operator.getInputTypes()) {
-							variableData.addInputType(inputType);
-						}
-
-						if (operator.getOutputType() != null) {
-							variableData.outputType = new TypeData(operator.getOutputType());
-						}
-
-						for(var id : operatorVariableFacade.getVariableIds()) {
-							variableData.referencedVariableIds.add(id);
-						}
-					}
-
-					if(variableFacade instanceof IValueTypeVariableFacade<?> valueTypeVariableFacade) {
-						ItemStack fakeVariableStack = facadeHandlerRegistry.writeVariableFacadeItem(
-							new ItemStack(RegistryEntries.ITEM_VARIABLE),
-							valueTypeVariableFacade,
-							valueTypeRegistry
-						);
-						variableData.translationKey = valueTypeVariableFacade.getValueType().getTranslationKey();
-						variableData.variableStack = fakeVariableStack.isEmpty() ? new ItemStack(RegistryEntries.ITEM_VARIABLE) : fakeVariableStack;
-						variableData.aspect = valueTypeVariableFacade.getValueType().getUniqueName();
-					}
+					VariableData variableData = VariableData.fromFacade(variableFacade, network, partNetwork);
 
 					networkElementData.variables.add(variableData);
 				}

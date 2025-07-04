@@ -38,6 +38,10 @@ public class WidgetNodeGraph extends WidgetPanel implements IGraphProvider {
 		this.addListener(WidgetDrawEvent.class, ((event, widget) -> {
 			if(!freezeActivity && event.type() == WidgetDrawEvent.Type.PRE) {
 				this.algorithm.updatePositions(this);
+//				this.algorithm.updatePositions(this);
+//				this.algorithm.updatePositions(this);
+//				this.algorithm.updatePositions(this);
+//				this.algorithm.updatePositions(this);
 			}
 			return WidgetEventResult.CONTINUE_PROCESSING;
 		}));
@@ -117,7 +121,7 @@ public class WidgetNodeGraph extends WidgetPanel implements IGraphProvider {
 	public void draw(GuiGraphics guiGraphics, Screen screen) {
 		super.draw(guiGraphics, screen);
 
-		if(DebugConfig.showVelocities) {
+		if(DebugConfig.showVelocities || true) {
 			guiGraphics.pose().pushPose();
 			guiGraphics.pose().translate(0, 0, 100); // Ensure nodes are drawn above edges
 			for(Widget node : this.nodes().keySet()) {
