@@ -86,6 +86,41 @@ public class GUIHelper {
 		return new Vector2f(angle, length);
 	}
 
+	public static Vector2f drawTiledLine(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, GUISpriteInfo spriteInfo, int color) {
+		return drawTiledLine(guiGraphics, x1, y1, x2, y2, spriteInfo, color, 0);
+	}
+
+	public static Vector2f drawTiledLine(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, GUISpriteInfo spriteInfo, int color, int padding) {
+		float angle = (float) Math.atan2(y2 - y1, x2 - x1);
+		float length = (float) Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+
+		int lineWidth = spriteInfo.height();
+
+		RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+		RenderSystem.enableBlend();
+
+		float midX = (x1 + x2) / 2f;
+		float midY = (y1 + y2) / 2f;
+
+		guiGraphics.pose().pushPose();
+		guiGraphics.pose().translate(midX - (length/2.0f), midY - (lineWidth/2.0f), 0);
+		guiGraphics.pose().rotateAround(Axis.ZP.rotationDegrees((float)Math.toDegrees(angle)), length / 2.0f, lineWidth/2.0f, 0);
+		//guiGraphics.pose().scale(0.25f, 0.25f, 1.0f);
+
+		setShaderColor(color);
+		int xPos = 0;
+		while( xPos < length) {
+			guiGraphics.blit(spriteInfo.sprite(), xPos, 0, 0, 0, spriteInfo.width(), spriteInfo.height(), spriteInfo.width(), spriteInfo.height());
+			xPos += (spriteInfo.width()) + padding;
+		}
+		RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f); // Reset color to white
+
+		guiGraphics.pose().popPose();
+		RenderSystem.disableBlend();
+
+		return new Vector2f(angle, length);
+	}
+
 	public static void drawArrowLine(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, float lineWidth, int color) {
 		Vector2f dataVector = drawFatLine(guiGraphics, x1, y1, x2, y2, lineWidth, color);
 		float angle = dataVector.x;

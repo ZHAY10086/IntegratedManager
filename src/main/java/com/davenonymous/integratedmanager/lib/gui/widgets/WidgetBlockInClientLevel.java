@@ -109,12 +109,11 @@ public class WidgetBlockInClientLevel extends WidgetWithValue<BlockPos> {
 		pGuiGraphics.pose().mulPose(Axis.XP.rotationDegrees(-30.0f));
 		pGuiGraphics.pose().mulPose(Axis.YP.rotationDegrees(-45.0f));
 		pGuiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(180.0f));
-		RenderSystem.enableDepthTest();
 
 		blockRenderer.renderSingleBlock(
 			targetState, pGuiGraphics.pose(), pGuiGraphics.bufferSource(),
 			0xFF00F0, OverlayTexture.NO_OVERLAY, level.getModelData(this.value), RenderType.CUTOUT);
-		RenderSystem.disableDepthTest();
+
 		pGuiGraphics.pose().popPose();
 	}
 
