@@ -1,5 +1,6 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
+import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetNodeGraph;
 import com.davenonymous.integratedmanager.networking.NetworkHelper;
@@ -24,7 +25,7 @@ public class NetworkElementData {
 
 	public BlockPos position = BlockPos.ZERO;
 	public Direction side = null;
-	public ResourceLocation group = ResourceLocation.fromNamespaceAndPath("integratedmanager", "unknown_group");
+	public ResourceLocation group = UnknownThings.Group;
 	public int id = -1; // This is the ID of the network element, not the data ID.
 	public int partId = -1;
 	public int channelId = -1;
@@ -102,5 +103,14 @@ public class NetworkElementData {
 		} else {
 			buf.writeBoolean(false);
 		}
+	}
+
+	public AspectData getAspect(ResourceLocation aspectName) {
+		for (AspectData aspect : aspects) {
+			if (aspect.uniqueName.equals(aspectName)) {
+				return aspect;
+			}
+		}
+		return null;
 	}
 }

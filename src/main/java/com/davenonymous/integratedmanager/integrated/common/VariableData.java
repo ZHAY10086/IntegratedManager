@@ -2,6 +2,7 @@ package com.davenonymous.integratedmanager.integrated.common;
 
 import com.davenonymous.integratedmanager.IntegratedManager;
 import com.davenonymous.integratedmanager.integrated.IDRegistries;
+import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.server.ValueTypeTranslator;
 import com.davenonymous.integratedmanager.networking.NetworkHelper;
@@ -33,7 +34,7 @@ public class VariableData {
 	public String facadeClassName = "unknown_facade";
 	public String label;
 	public ResourceLocation type;
-	public ResourceLocation aspect = ResourceLocation.fromNamespaceAndPath("integratedmanager", "unknown_aspect");
+	public ResourceLocation aspect = UnknownThings.Aspect;
 	public ItemStack variableStack = new ItemStack(RegistryEntries.ITEM_VARIABLE);
 	public String translationKey;
 	public ValueData valueData = null;

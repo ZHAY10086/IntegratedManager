@@ -1,5 +1,6 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
+import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -8,13 +9,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 public class PartData {
-	public ResourceLocation uniqueName = ResourceLocation.fromNamespaceAndPath("integratedmanager", "unknown_part");
+	public ResourceLocation uniqueName = UnknownThings.Part;
 	public boolean writer = false;
 	public boolean reader = false;
 	public BlockPos targetPos = BlockPos.ZERO;
 	public Direction targetSide = null;
 	public ItemStack targetStack = ItemStack.EMPTY;
 	public String level;
+	public ResourceLocation activeAspect = UnknownThings.Aspect;
 
 	public PartData() {
 	}
@@ -35,6 +37,7 @@ public class PartData {
 		if (buf.readBoolean()) {
 			this.level = buf.readUtf(256); // Read level name, if present
 		}
+		this.activeAspect = buf.readResourceLocation();
 	}
 
 	public void writeToBuffer(RegistryFriendlyByteBuf buf) {
@@ -65,6 +68,7 @@ public class PartData {
 		} else {
 			buf.writeBoolean(false);
 		}
+		buf.writeResourceLocation(activeAspect);
 	}
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PartData> STREAM_CODEC =

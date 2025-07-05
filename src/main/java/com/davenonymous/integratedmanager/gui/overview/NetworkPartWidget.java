@@ -1,6 +1,7 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
 import com.davenonymous.integratedmanager.gui.WidgetFactories;
+import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.PartData;
 import com.davenonymous.integratedmanager.lib.gui.event.MouseExitEvent;
@@ -25,7 +26,7 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 	PartData part;
 	ItemStack partStack;
 	WidgetItemStack partWidget;
-	List<ResourceLocation> usedAspects;
+
 	int selected = -1;
 
 	public NetworkPartWidget(NetworkElementData value) {
@@ -42,11 +43,6 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 		Item partItem = BuiltInRegistries.ITEM.get(hackedItemName);
 		if(partItem == null) {
 			partItem = Items.BARRIER;
-		}
-
-		usedAspects = new ArrayList<>();
-		for(var variable : getValue().variables) {
-			usedAspects.add(variable.aspect);
 		}
 
 		partStack = new ItemStack(partItem);
@@ -105,8 +101,9 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 	protected void updateTooltips() {
 		var data = getValue();
 
-		if(part.writer && !usedAspects.isEmpty()) {
-			var aspect = data.aspects.getFirst();
+		boolean hasActiveAspect = part.activeAspect != null && part.activeAspect != UnknownThings.Aspect && data.getAspect(part.activeAspect) != null;
+		if(part.writer && hasActiveAspect) {
+			var aspect = data.getAspect(part.activeAspect);
 			var translationKey = aspect.translationKey;
 			if(I18n.exists(translationKey + ".info")) {
 				partWidget.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(translationKey + ".info")));
@@ -121,14 +118,14 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 			);
 		}
 
-		if(!(part.writer && !usedAspects.isEmpty()) &&!data.aspects.isEmpty()) {
+		if(!(part.writer && hasActiveAspect) && !data.aspects.isEmpty()) {
 			int index = 0;
 			partWidget.addTooltipElement(
 				new LabeledLineSeparatorTooltipComponent(partWidget, I18n.get("info_book.integrateddynamics.tutorials.aspects"))
 			);
 			for(var aspect : data.aspects) {
 				var label = "- " + (I18n.exists(aspect.translationKey) ? I18n.get(aspect.translationKey) : aspect.uniqueName.toString());
-				if(usedAspects.contains(aspect.uniqueName)) {
+				if(part.activeAspect.equals(aspect.uniqueName)) {
 					partWidget.addTooltipElement(StringTooltipComponent.green(label));
 				} else {
 					if(index == selected) {

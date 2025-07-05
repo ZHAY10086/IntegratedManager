@@ -31,13 +31,17 @@ import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationC
 import org.cyclops.integrateddynamics.api.item.IVariableFacade;
 import org.cyclops.integrateddynamics.api.item.IVariableFacadeHolder;
 import org.cyclops.integrateddynamics.api.network.*;
-import org.cyclops.integrateddynamics.api.part.*;
+import org.cyclops.integrateddynamics.api.part.IPartState;
+import org.cyclops.integrateddynamics.api.part.IPartType;
+import org.cyclops.integrateddynamics.api.part.PartPos;
+import org.cyclops.integrateddynamics.api.part.PartTarget;
+import org.cyclops.integrateddynamics.api.part.aspect.IAspect;
 import org.cyclops.integrateddynamics.api.part.aspect.IAspectRead;
 import org.cyclops.integrateddynamics.api.part.aspect.IAspectWrite;
 import org.cyclops.integrateddynamics.api.part.read.IPartTypeReader;
+import org.cyclops.integrateddynamics.api.part.write.IPartStateWriter;
 import org.cyclops.integrateddynamics.api.part.write.IPartTypeWriter;
 import org.cyclops.integrateddynamics.blockentity.BlockEntityProxy;
-import org.cyclops.integrateddynamics.blockentity.BlockEntityVariablestore;
 import org.cyclops.integrateddynamics.core.network.TileNetworkElement;
 
 import javax.annotation.Nullable;
@@ -143,20 +147,6 @@ public class NetworkAnalysis {
 							tileData.blockEntityClass = blockEntity.getClass().getSimpleName();
 						}
 
-						if(blockEntity instanceof BlockEntityVariablestore varStore) {
-							var inventory = varStore.getInventory();
-							for(int i = 0; i < inventory.getItemHandler().getSlots(); i++) {
-								ItemStack stack = inventory.getItemHandler().getStackInSlot(i);
-								if(stack.isEmpty() || !stack.is(RegistryEntries.ITEM_VARIABLE)) {
-									continue;
-								}
-
-								if(!stack.has(facadeComponentType)) {
-									freeVariables++;
-								}
-							}
-						}
-
 						if(blockEntity instanceof BlockEntityProxy proxy) {
 							tileData.proxyId = proxy.getProxyId();
 							var inventory = proxy.getInventory();
@@ -192,7 +182,6 @@ public class NetworkAnalysis {
 				IVariableContainer variableContainer = variableHolder.get();
 				for(IVariableFacade variableFacade : variableContainer.getVariableCache().values()) {
 					VariableData variableData = VariableData.fromFacade(variableFacade, network, partNetwork);
-
 					networkElementData.variables.add(variableData);
 				}
 			}
@@ -239,15 +228,17 @@ public class NetworkAnalysis {
 					}
 				}
 
-				if(part instanceof IPartTypeActiveVariable<?, ?> partTypeActiveVariable) {
-					if(partTypeActiveVariable instanceof IPartTypeWriter<?,?> partTypeWriter) {
-
-						partData.writer = true;
-						for(IAspectWrite<?, ?> aspect : partTypeWriter.getWriteAspects()) {
-							AspectData aspectData = new AspectData(aspect);
-							networkElementData.aspects.add(aspectData);
-						}
-
+				//noinspection rawtypes
+				if(part instanceof IPartTypeWriter partTypeWriter) {
+					partData.writer = true;
+					//noinspection rawtypes,unchecked
+					IAspectWrite foo = partTypeWriter.getActiveAspect(partTarget, (IPartStateWriter) partNetworkElement.getPartState());
+					if(foo != null) {
+						partData.activeAspect = foo.getUniqueName();
+					}
+					for(Object aspect : partTypeWriter.getWriteAspects()) {
+						AspectData aspectData = new AspectData((IAspect<?, ?>) aspect);
+						networkElementData.aspects.add(aspectData);
 					}
 				}
 
