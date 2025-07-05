@@ -23,5 +23,11 @@ public class Register {
 			NetworkElementInfo.STREAM_CODEC,
 			NetworkElementInfo::handleOnClient
 		);
+
+		registrar.playToServer(
+			NetworkDataRequest.TYPE,
+			NetworkDataRequest.STREAM_CODEC,
+			NetworkDataRequest::handleOnServer
+		);
 	}
 }

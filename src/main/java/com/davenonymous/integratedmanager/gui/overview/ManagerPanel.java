@@ -1,12 +1,14 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
 import com.davenonymous.integratedmanager.gui.AllElementsReceivedEvent;
+import com.davenonymous.integratedmanager.gui.NodeUpdateEvent;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.PartData;
 import com.davenonymous.integratedmanager.integrated.common.TileData;
 import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import com.davenonymous.integratedmanager.lib.gui.ColorHelper;
+import com.davenonymous.integratedmanager.lib.gui.event.GuiDataUpdatedEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
@@ -32,6 +34,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 	Map<Integer, NetworkPartWidget> partWidgets;
 	Map<Integer, VariableFacadeWidget> variableWidgets;
 	Map<Integer, NetworkTileWidget> proxyWidgets;
+	boolean fullDataReceived = false;
 
 	public Widget addPartWidget(NetworkElementData data, int initialX, int initialY) {
 		PartData part = data.partData;
@@ -117,8 +120,37 @@ public class ManagerPanel extends WidgetPanningPanel {
 		this.nodeGraph = new WidgetNodeGraph(GraphAlgorithms.INTEGRATE_THEN_APPLY.get());
 		this.nodeGraph.setSize(1024, 1024);
 
+		this.addListener(NodeUpdateEvent.class, ((event, widget) -> {
+			if(!this.fullDataReceived) {
+				return WidgetEventResult.CONTINUE_PROCESSING;
+			}
+
+			NetworkElementData data = event.data();
+			for(var variableData : data.variables) {
+				if(variableData.id == -1) {
+					continue;
+				}
+
+				if(!variableWidgets.containsKey(variableData.id)) {
+					continue;
+				}
+
+				VariableFacadeWidget variableWidget = variableWidgets.get(variableData.id);
+
+				// TODO: Update the variable widget with new data
+
+			}
+
+			return WidgetEventResult.CONTINUE_PROCESSING;
+		}));
+
 		this.addListener(
 			AllElementsReceivedEvent.class, (event, widget) -> {
+				if(this.fullDataReceived) {
+					return WidgetEventResult.CONTINUE_PROCESSING; // Already processed
+				}
+
+				this.fullDataReceived = true;
 				int elementSize = 48;
 				Vector2f center = new Vector2f(
 					(nodeGraph.width / 2.0f),

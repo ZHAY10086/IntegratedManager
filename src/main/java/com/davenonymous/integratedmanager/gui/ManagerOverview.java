@@ -1,27 +1,29 @@
 package com.davenonymous.integratedmanager.gui;
 
+import com.davenonymous.integratedmanager.IntegratedManager;
 import com.davenonymous.integratedmanager.gui.overview.ManagerPanel;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.lib.gui.GUI;
 import com.davenonymous.integratedmanager.lib.gui.WidgetFullScreen;
 import com.davenonymous.integratedmanager.lib.gui.event.GuiDataUpdatedEvent;
+import com.davenonymous.integratedmanager.lib.gui.event.MouseClickEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
-import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
-import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetGhostSlot;
+import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetImage;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPlayButton;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetProgressBar;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetTextBox;
+import com.davenonymous.integratedmanager.networking.NetworkDataRequest;
 import com.davenonymous.integratedmanager.setup.config.DebugConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
-import org.cyclops.integrateddynamics.RegistryEntries;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class ManagerOverview extends WidgetFullScreen {
 	int sidePadding = 16;
 
 	WidgetPlayButton playButton;
+	WidgetImage refreshButton;
 	ManagerPanel managerPanel;
 	WidgetProgressBar progressBar;
 
@@ -33,6 +35,7 @@ public class ManagerOverview extends WidgetFullScreen {
 
 	protected void updateWidgetSizes() {
 		sidePadding = 8;
+		refreshButton.setPosition(this.width / 2 - refreshButton.width / 2, 5);
 		playButton.setPosition(this.width - 26 - sidePadding, 5);
 		managerPanel.setDimensions(sidePadding, sidePadding + 16, this.width - (2*sidePadding), this.height - (2*sidePadding) - 16);
 	}
@@ -57,7 +60,6 @@ public class ManagerOverview extends WidgetFullScreen {
 		gui.add(progressBar);
 
 		managerPanel = new ManagerPanel();
-
 		gui.add(managerPanel);
 
 		playButton = new WidgetPlayButton(false, () -> {
@@ -68,6 +70,16 @@ public class ManagerOverview extends WidgetFullScreen {
 		playButton.setEnabled(!DebugConfig.autoAdvanceGraph);
 		playButton.setVisible(!DebugConfig.autoAdvanceGraph);
 		gui.add(playButton);
+
+		refreshButton = new WidgetImage(IntegratedManager.resource("textures/gui/arrowhead.png"));
+		refreshButton.setSize(16, 16);
+		refreshButton.addListener(MouseClickEvent.class, (event, widget) -> {
+			if(event.button == 0) { // Left click
+				PacketDistributor.sendToServer(new NetworkDataRequest(NetworkData.cache().masterPosition));
+			}
+			return WidgetEventResult.HANDLED;
+		});
+		// gui.add(refreshButton);
 
 		gui.addListener(GuiDataUpdatedEvent.class, (event, widget) -> {
 			int totalParts = NetworkData.cache().totalParts;

@@ -3,6 +3,7 @@ package com.davenonymous.integratedmanager.networking;
 import com.davenonymous.integratedmanager.IntegratedManager;
 import com.davenonymous.integratedmanager.gui.AllElementsReceivedEvent;
 import com.davenonymous.integratedmanager.gui.ManagerOverview;
+import com.davenonymous.integratedmanager.gui.NodeUpdateEvent;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.lib.gui.event.GuiDataUpdatedEvent;
@@ -30,6 +31,7 @@ public record NetworkElementInfo(NetworkElementData data) implements CustomPacke
 		IntegratedManager.LOGGER.info("Received network data info: ID={}", message.data());
 		if(Minecraft.getInstance().screen instanceof ManagerOverview managerScreen) {
 			managerScreen.getOrCreateGui().fireEvent(new GuiDataUpdatedEvent());
+			managerScreen.getOrCreateGui().fireEvent(new NodeUpdateEvent(message.data));
 		}
 
 		boolean haveAllParts = NetworkData.cache().elementDataList.size() == NetworkData.cache().totalParts;

@@ -22,6 +22,7 @@ public class NetworkData {
 
 	// ----------
 
+	public BlockPos masterPosition; // Position of the master tile
 	public int networkId = 0;
 	public int totalParts = 0;
 	public int usedVariables = 0;
@@ -38,6 +39,7 @@ public class NetworkData {
 	public int minY = Integer.MAX_VALUE;
 
 	public NetworkData reset() {
+		this.masterPosition = null; // Reset master position
 		this.networkId = 0;
 		this.totalParts = 0;
 		this.usedVariables = 0;

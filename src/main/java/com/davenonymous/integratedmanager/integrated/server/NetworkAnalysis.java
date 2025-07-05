@@ -1,7 +1,6 @@
 package com.davenonymous.integratedmanager.integrated.server;
 
 import com.davenonymous.integratedmanager.IntegratedManager;
-import com.davenonymous.integratedmanager.integrated.IDRegistries;
 import com.davenonymous.integratedmanager.integrated.common.*;
 import com.davenonymous.integratedmanager.networking.NetworkElementInfo;
 import com.davenonymous.integratedmanager.networking.NetworkMasterInfo;
@@ -10,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,20 +20,19 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.cyclops.cyclopscore.datastructure.DimPos;
 import org.cyclops.cyclopscore.helper.BlockEntityHelpers;
-import org.cyclops.cyclopscore.init.RegistryManager;
 import org.cyclops.integrateddynamics.Capabilities;
 import org.cyclops.integrateddynamics.RegistryEntries;
-import org.cyclops.integrateddynamics.api.IntegratedDynamicsAPI;
 import org.cyclops.integrateddynamics.api.block.IVariableContainer;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.IValueInterface;
-import org.cyclops.integrateddynamics.api.evaluate.operator.IOperatorRegistry;
-import org.cyclops.integrateddynamics.api.evaluate.variable.*;
-import org.cyclops.integrateddynamics.api.item.*;
+import org.cyclops.integrateddynamics.api.evaluate.variable.IValue;
+import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
+import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
+import org.cyclops.integrateddynamics.api.item.IVariableFacade;
+import org.cyclops.integrateddynamics.api.item.IVariableFacadeHolder;
 import org.cyclops.integrateddynamics.api.network.*;
 import org.cyclops.integrateddynamics.api.part.*;
 import org.cyclops.integrateddynamics.api.part.aspect.IAspectRead;
-import org.cyclops.integrateddynamics.api.part.aspect.IAspectRegistry;
 import org.cyclops.integrateddynamics.api.part.aspect.IAspectWrite;
 import org.cyclops.integrateddynamics.api.part.read.IPartTypeReader;
 import org.cyclops.integrateddynamics.api.part.write.IPartTypeWriter;
@@ -52,6 +49,7 @@ public class NetworkAnalysis {
 	public static final BlockCapability<INetworkCarrier, Direction> NETWORK_CARRIER = Capabilities.NetworkCarrier.BLOCK;
 	public static final NetworkCapability<IPartNetwork> PART_NETWORK = Capabilities.PartNetwork.NETWORK;
 
+	BlockPos pos;
 	INetworkCarrier carrier;
 	INetwork network;
 	IPartNetwork partNetwork;
@@ -63,6 +61,8 @@ public class NetworkAnalysis {
 	public List<NetworkElementData> networkElements;
 
 	public NetworkAnalysis(ServerLevel level, BlockPos pos, Direction side) {
+		this.pos = pos;
+
 		BlockState state = level.getBlockState(pos);
 
 		BlockEntity blockEntity = level.getBlockEntity(pos);
@@ -259,7 +259,7 @@ public class NetworkAnalysis {
 	}
 
 	public void sendAnalysis(ServerPlayer player) {
-		var masterInfo = new NetworkMasterInfo(networkId, networkElements.size(), usedVariables, freeVariables);
+		var masterInfo = new NetworkMasterInfo(pos, networkId, networkElements.size(), usedVariables, freeVariables);
 		PacketDistributor.sendToPlayer(player, masterInfo);
 		for(var element : networkElements) {
 			PacketDistributor.sendToPlayer(player, new NetworkElementInfo(element));
