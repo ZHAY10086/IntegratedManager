@@ -10,7 +10,9 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public class Config {
 	public static final ModConfigSpec COMMON_SPEC;
 	public static final ModConfigSpec CLIENT_SPEC;
+
 	public static final DebugConfig Debug;
+	public static final ClientGraphConfig ClientGraph;
 
 	static {
 		ModConfigSpec.Builder commonBuilder = new ModConfigSpec.Builder();
@@ -18,6 +20,7 @@ public class Config {
 
 		ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 		Debug = new DebugConfig(builder);
+		ClientGraph = new ClientGraphConfig(builder);
 		CLIENT_SPEC = builder.build();
 
 	}
@@ -27,6 +30,7 @@ public class Config {
 		if(event.getConfig().getSpec() == COMMON_SPEC) {
 		} else if(event.getConfig().getSpec() == CLIENT_SPEC) {
 			Debug.load();
+			ClientGraph.load();
 		}
 	}
 }

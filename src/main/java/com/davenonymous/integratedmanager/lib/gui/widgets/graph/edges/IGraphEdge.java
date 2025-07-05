@@ -1,5 +1,6 @@
 package com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges;
 
+import com.davenonymous.integratedmanager.lib.gui.GUISpriteInfo;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 
 public interface IGraphEdge {
@@ -32,5 +33,9 @@ public interface IGraphEdge {
 
 	default void merge(IGraphEdge other) {
 		// Default implementation does nothing, can be overridden by specific edge implementations
+	}
+
+	default LineStyle getStyle() {
+		return null;
 	}
 }

@@ -6,9 +6,7 @@ import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.PartData;
 import com.davenonymous.integratedmanager.integrated.common.TileData;
-import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import com.davenonymous.integratedmanager.lib.gui.ColorHelper;
-import com.davenonymous.integratedmanager.lib.gui.event.GuiDataUpdatedEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
@@ -17,15 +15,14 @@ import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPanningPanel;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphAlgorithms;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphHelpers;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.ConstrainedGraphEdge;
+import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.LineStyle;
+import com.davenonymous.integratedmanager.setup.config.ClientGraphConfig;
 import com.davenonymous.integratedmanager.setup.config.DebugConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import org.joml.Vector2f;
-import org.joml.Vector2i;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ManagerPanel extends WidgetPanningPanel {
 	WidgetNodeGraph nodeGraph;
@@ -34,6 +31,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 	Map<Integer, NetworkPartWidget> partWidgets;
 	Map<Integer, VariableFacadeWidget> variableWidgets;
 	Map<Integer, NetworkTileWidget> proxyWidgets;
+	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByChannelId;
 	boolean fullDataReceived = false;
 
 	public Widget addPartWidget(NetworkElementData data, int initialX, int initialY) {
@@ -49,6 +47,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 
 
 		partWidgets.put(data.partId, partWidget);
+		elementsByChannelId.computeIfAbsent(data.channelId, k -> new ArrayList<>()).add(partWidget);
 
 		if(!part.targetStack.isEmpty()) {
 			PartTargetWidget partTargetWidget = new PartTargetWidget(part);
@@ -61,6 +60,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 				edge = ConstrainedGraphEdge.createMaxDistanceEdge(partTargetWidget, partWidget, 24.0f);
 			}
 			edge.setShouldRender(true);
+			edge.setStyle(LineStyle.ARROW);
 			edge.setColorSource(ColorHelper.COLOR_ERRORED.getRGB());
 			nodeGraph.addEdge(edge);
 		}
@@ -78,7 +78,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 			return null;
 		}
 
-		if(tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
+		if(!ClientGraphConfig.showVariableStores && tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
 			return null;
 		}
 
@@ -103,6 +103,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 		nodeGraph.add(tileWidget);
 
 		tileWidgets.put(data.position, tileWidget);
+		elementsByChannelId.computeIfAbsent(data.channelId, k -> new ArrayList<>()).add(tileWidget);
 
 		if(tileData.proxyId >= 0) {
 			proxyWidgets.put(tileData.proxyId, tileWidget);
@@ -117,6 +118,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 		this.variableWidgets = new HashMap<>();
 		this.tileWidgets = new HashMap<>();
 		this.proxyWidgets = new HashMap<>();
+		this.elementsByChannelId = new HashMap<>();
 		this.nodeGraph = new WidgetNodeGraph(GraphAlgorithms.INTEGRATE_THEN_APPLY.get());
 		this.nodeGraph.setSize(1024, 1024);
 
@@ -191,7 +193,15 @@ public class ManagerPanel extends WidgetPanningPanel {
 						if(elementWidget != null) {
 							var edge = ConstrainedGraphEdge.createMaxDistanceEdge(variableWidget, elementWidget, 32.0f);
 							edge.setShouldRender(true);
+							edge.setStyle(LineStyle.ARROW);
 							edge.setColorSource(ColorHelper.COLOR_ORANGE);
+
+							if(elementWidget instanceof NetworkTileWidget networkTileWidget) {
+								if(networkTileWidget.getValue().tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
+									edge.setStyle(LineStyle.AA_THIN);
+									edge.setColorSource(ColorHelper.COLOR_DISABLED.getRGB());
+								}
+							}
 							nodeGraph.addEdge(edge);
 						}
 					}
@@ -216,6 +226,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 							if(otherVariableWidget != null && otherVariableWidget != variableWidget) {
 								var edge = ConstrainedGraphEdge.createConstrainedEdge(otherVariableWidget, variableWidget, 5.0f);
 								edge.setShouldRender(true);
+								edge.setStyle(LineStyle.ARROW);
 								edge.setColorSource(ColorHelper.COLOR_GREEN);
 								nodeGraph.addEdge(edge);
 							}
@@ -227,6 +238,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 							if(partWidget != null) {
 								var edge = ConstrainedGraphEdge.createConstrainedEdge(partWidget, variableWidget, 32.0f);
 								edge.setShouldRender(true);
+								edge.setStyle(LineStyle.ARROW);
 								edge.setColorSource(ColorHelper.COLOR_CYAN);
 								nodeGraph.addEdge(edge);
 							}
@@ -237,11 +249,32 @@ public class ManagerPanel extends WidgetPanningPanel {
 							if(proxyWidget != null) {
 								var edge = ConstrainedGraphEdge.createConstrainedEdge(proxyWidget, variableWidget, 32.0f);
 								edge.setShouldRender(true);
+								edge.setStyle(LineStyle.ARROW);
 								edge.setColorSource(ColorHelper.COLOR_PURPLE);
 								nodeGraph.addEdge(edge);
 							}
 						}
 
+					}
+				}
+
+				if(ClientGraphConfig.showCables) {
+					for(int channelId : elementsByChannelId.keySet()) {
+						List<NodeWidget<NetworkElementData>> channelElements = elementsByChannelId.get(channelId);
+						if(channelElements.size() < 2) {
+							continue; // No edges to draw
+						}
+
+						for(int i = 0; i < channelElements.size() - 1; i++) {
+							NodeWidget<NetworkElementData> from = channelElements.get(i);
+							NodeWidget<NetworkElementData> to = channelElements.get(i + 1);
+
+							ConstrainedGraphEdge edge = ConstrainedGraphEdge.createConstrainedEdge(from, to, 32.0f);
+							edge.setStyle(LineStyle.INTEGRATED_DYNAMICS_CABLE);
+							edge.setShouldRender(true);
+							edge.setColorSource(0xFFFFFFFF);
+							nodeGraph.addEdge(edge);
+						}
 					}
 				}
 

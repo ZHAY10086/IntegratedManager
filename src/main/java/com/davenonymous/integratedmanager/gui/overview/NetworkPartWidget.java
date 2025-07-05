@@ -6,6 +6,7 @@ import com.davenonymous.integratedmanager.integrated.common.PartData;
 import com.davenonymous.integratedmanager.lib.gui.event.MouseExitEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.MouseScrollEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.LabeledLineSeparatorTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.WrappedStringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetItemStack;
@@ -90,51 +91,65 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 		);
 		updateTooltips();
 
+
+		var data = getValue();
 		if(Minecraft.getInstance().options.advancedItemTooltips) {
 			partWidget.addTooltipElement(
-				WidgetFactories.Tooltips.labelValue(I18n.get("gui.integrateddynamics.diagnostics.table.part") + ":", getValue().partId),
-				WidgetFactories.Tooltips.labelValue(I18n.get("gui.integrateddynamics.diagnostics.table.position") + ":", getValue().position.toShortString())
+				LabeledLineSeparatorTooltipComponent.advancedInfos(partWidget),
+				WidgetFactories.Tooltips.labelValue(I18n.get("gui.integrateddynamics.diagnostics.table.part") + ":", data.partId),
+				WidgetFactories.Tooltips.labelValue(I18n.get("gui.integrateddynamics.diagnostics.table.position") + ":", data.position.toShortString())
 			);
 		}
 	}
 
 	protected void updateTooltips() {
+		var data = getValue();
+
 		if(part.writer && !usedAspects.isEmpty()) {
-			var aspect = getValue().aspects.getFirst();
+			var aspect = data.aspects.getFirst();
 			var translationKey = aspect.translationKey;
 			if(I18n.exists(translationKey + ".info")) {
 				partWidget.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(translationKey + ".info")));
 			} else {
 				partWidget.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(translationKey)));
 			}
-		} else {
-			if(!getValue().aspects.isEmpty()) {
-				int index = 0;
-				partWidget.addTooltipElement(StringTooltipComponent.cyan(I18n.get( "info_book.integrateddynamics.tutorials.aspects") + ":"));
-				for(var aspect : getValue().aspects) {
-					var label = "- " + (I18n.exists(aspect.translationKey) ? I18n.get(aspect.translationKey) : aspect.uniqueName.toString());
-					if(usedAspects.contains(aspect.uniqueName)) {
+		}
+
+		if(data.channelId != -1) {
+			partWidget.addTooltipElement(
+				WidgetFactories.Tooltips.labelValue(I18n.get("aspect.aspecttypes.integrateddynamics.integer.channel") + ":", data.channelId)
+			);
+		}
+
+		if(!(part.writer && !usedAspects.isEmpty()) &&!data.aspects.isEmpty()) {
+			int index = 0;
+			partWidget.addTooltipElement(
+				new LabeledLineSeparatorTooltipComponent(partWidget, I18n.get("info_book.integrateddynamics.tutorials.aspects"))
+			);
+			for(var aspect : data.aspects) {
+				var label = "- " + (I18n.exists(aspect.translationKey) ? I18n.get(aspect.translationKey) : aspect.uniqueName.toString());
+				if(usedAspects.contains(aspect.uniqueName)) {
+					partWidget.addTooltipElement(StringTooltipComponent.green(label));
+				} else {
+					if(index == selected) {
 						partWidget.addTooltipElement(StringTooltipComponent.green(label));
 					} else {
-						if(index == selected) {
-							partWidget.addTooltipElement(StringTooltipComponent.green(label));
-						} else {
-							partWidget.addTooltipElement(StringTooltipComponent.gray(label));
-						}
+						partWidget.addTooltipElement(StringTooltipComponent.gray(label));
 					}
-
-					index++;
 				}
 
-				if(selected >= 0 && selected < getValue().aspects.size()) {
-					var selectedAspect = getValue().aspects.get(selected);
-					partWidget.addTooltipElement(
-						WrappedStringTooltipComponent.orange(I18n.get(selectedAspect.translationKey + ".info"))
-					);
-				} else {
-					partWidget.addTooltipElement(StringTooltipComponent.orange(I18n.get("integratedmanager.message.scroll_for_aspect_details")));
-				}
+				index++;
+			}
+
+			if(selected >= 0 && selected < data.aspects.size()) {
+				var selectedAspect = data.aspects.get(selected);
+				partWidget.addTooltipElement(
+					WrappedStringTooltipComponent.orange(I18n.get(selectedAspect.translationKey + ".info"))
+				);
+			} else {
+				partWidget.addTooltipElement(StringTooltipComponent.orange(I18n.get("integratedmanager.message.scroll_for_aspect_details")));
 			}
 		}
+
 	}
 }

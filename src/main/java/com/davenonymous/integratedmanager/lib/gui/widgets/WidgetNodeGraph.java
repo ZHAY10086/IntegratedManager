@@ -10,6 +10,7 @@ import com.davenonymous.integratedmanager.lib.gui.widgets.graph.IGraphAlgorithm;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.IGraphProvider;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.ConstrainedGraphEdge;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.IGraphEdge;
+import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.LineStyle;
 import com.davenonymous.integratedmanager.setup.config.DebugConfig;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -161,7 +162,30 @@ public class WidgetNodeGraph extends WidgetPanel implements IGraphProvider {
 				continue;
 			}
 
-			GUIHelper.drawArrowLine(guiGraphics, sourceX, sourceY, targetX, targetY, 1.0f, edge.colorSource());
+			if(edge.getStyle() != null) {
+				switch(edge.getStyle()) {
+					case ARROW:
+						GUIHelper.drawArrowLine(guiGraphics, sourceX, sourceY, targetX, targetY, edge.getStyle().lineThickness, edge.colorSource());
+						break;
+					case AA_THIN:
+						GUIHelper.drawLine(guiGraphics, sourceX, sourceY, targetX, targetY, edge.colorSource());
+						break;
+					case MEDIUM:
+						GUIHelper.drawFatLine(guiGraphics, sourceX, sourceY, targetX, targetY, edge.getStyle().lineThickness, edge.colorSource());
+						break;
+					case THIN:
+						GUIHelper.drawFatLine(guiGraphics, sourceX, sourceY, targetX, targetY, edge.getStyle().lineThickness, edge.colorSource());
+						break;
+					case THICK:
+						GUIHelper.drawFatLine(guiGraphics, sourceX, sourceY, targetX, targetY, edge.getStyle().lineThickness, edge.colorSource());
+						break;
+					case INTEGRATED_DYNAMICS_CABLE:
+						GUIHelper.drawTiledLine(guiGraphics, sourceX, sourceY, targetX, targetY, edge.getStyle().sprite, edge.colorSource(), edge.getStyle().spacing);
+						break;
+				}
+			} else {
+				GUIHelper.drawLine(guiGraphics, sourceX, sourceY, targetX, targetY, 0xFFFF0000);
+			}
 		}
 	}
 

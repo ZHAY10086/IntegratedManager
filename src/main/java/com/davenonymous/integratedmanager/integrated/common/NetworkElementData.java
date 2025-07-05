@@ -67,20 +67,6 @@ public class NetworkElementData {
 
 	}
 
-	public Vector2i guessPosition(WidgetNodeGraph graph) {
-		int wiggle = 16;
-		int posScale = 32;
-
-		var random = Minecraft.getInstance().level.random;
-		int wiggleX = random.nextInt(wiggle);
-		int wiggleY = random.nextInt(wiggle);
-		int normalizedX = this.position.getX() - NetworkData.cache().minX;
-		int normalizedY = this.position.getY() - NetworkData.cache().minY;
-		int initialX = (posScale * normalizedX) + wiggleX + (graph.width / 2);
-		int initialY = (posScale * normalizedY) + wiggleY + (graph.height / 2);
-		return new Vector2i(initialX, initialY);
-	}
-
 	public void writeToBuffer(RegistryFriendlyByteBuf buf) {
 		buf.writeVarInt(partId);
 		buf.writeBlockPos(position);

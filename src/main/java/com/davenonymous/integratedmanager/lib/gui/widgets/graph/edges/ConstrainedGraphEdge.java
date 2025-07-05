@@ -47,6 +47,9 @@ public class ConstrainedGraphEdge extends AbstractGraphEdge {
 			this.shouldRender |= otherConstrainedEdge.shouldRender;
 			this.setColorTarget(otherConstrainedEdge.colorTarget());
 			this.setColorSource(otherConstrainedEdge.colorSource());
+			if(this.style == null && otherConstrainedEdge.getStyle() != null) {
+				this.setStyle(otherConstrainedEdge.getStyle());
+			}
 		}
 	}
 

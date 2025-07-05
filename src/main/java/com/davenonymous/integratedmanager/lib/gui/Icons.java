@@ -59,4 +59,6 @@ public class Icons {
 	public static ResourceLocation playButton = IntegratedManager.resource("textures/gui/play-button.png");
 	public static ResourceLocation pauseButton = IntegratedManager.resource("textures/gui/pause-button.png");
 
+	public static ResourceLocation guiIDCable = IntegratedManager.resource("textures/gui/line-id-cable.png");
+
 }

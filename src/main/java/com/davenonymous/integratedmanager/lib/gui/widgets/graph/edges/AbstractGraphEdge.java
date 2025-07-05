@@ -7,6 +7,7 @@ import java.util.Objects;
 public abstract class AbstractGraphEdge implements IGraphEdge {
 	Widget source;
 	Widget target;
+	LineStyle style = null;
 
 	int colorSource = 0x00FFFFFF; // Default color for source widget
 	int colorTarget = 0xFFFFFFFF; // Default color for target widget
@@ -34,6 +35,16 @@ public abstract class AbstractGraphEdge implements IGraphEdge {
 	@Override
 	public int colorTarget() {
 		return colorTarget;
+	}
+
+	@Override
+	public LineStyle getStyle() {
+		return style;
+	}
+
+	public AbstractGraphEdge setStyle(LineStyle style) {
+		this.style = style;
+		return this;
 	}
 
 	public AbstractGraphEdge setColorSource(int colorSource) {
