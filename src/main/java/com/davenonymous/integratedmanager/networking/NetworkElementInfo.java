@@ -28,7 +28,6 @@ public record NetworkElementInfo(NetworkElementData data) implements CustomPacke
 
 	public static void handleOnClient(NetworkElementInfo message, IPayloadContext context) {
 		NetworkData.cache().addElementData(message.data());
-		IntegratedManager.LOGGER.info("Received network data info: ID={}", message.data());
 		if(Minecraft.getInstance().screen instanceof ManagerOverview managerScreen) {
 			managerScreen.getOrCreateGui().fireEvent(new GuiDataUpdatedEvent());
 			managerScreen.getOrCreateGui().fireEvent(new NodeUpdateEvent(message.data));
@@ -42,7 +41,8 @@ public record NetworkElementInfo(NetworkElementData data) implements CustomPacke
 			if(Minecraft.getInstance().screen instanceof ManagerOverview managerScreen) {
 				managerScreen.getOrCreateGui().fireEvent(new AllElementsReceivedEvent());
 			}
-			IntegratedManager.LOGGER.info("All element received for network ID {}, total: {}",
+
+			IntegratedManager.LOGGER.debug("All element received for network ID {}, total: {}",
 					NetworkData.cache().networkId, NetworkData.cache().elementDataList.size());
 		}
 	}
