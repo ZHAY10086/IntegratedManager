@@ -19,9 +19,13 @@ import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
 import org.cyclops.integrateddynamics.api.item.*;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPartNetwork;
+import org.cyclops.integrateddynamics.api.part.aspect.property.IAspectProperties;
+import org.cyclops.integrateddynamics.api.part.aspect.property.IAspectPropertyTypeInstance;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class VariableData {
 
@@ -38,6 +42,7 @@ public class VariableData {
 	public ItemStack variableStack = new ItemStack(RegistryEntries.ITEM_VARIABLE);
 	public String translationKey;
 	public ValueData valueData = null;
+	public Map<String, ValueData> aspectProperties = new HashMap<>();
 
 	public List<TypeData> inputTypes = new ArrayList<>();
 	public TypeData outputType = null;
@@ -77,6 +82,7 @@ public class VariableData {
 		}
 
 		this.inputTypes = NetworkHelper.readCollection(buf, ArrayList::new, TypeData.STREAM_CODEC);
+		this.aspectProperties = NetworkHelper.readMap(buf, HashMap::new, FriendlyByteBuf::readUtf, ValueData.STREAM_CODEC);
 	}
 
 	public void addInputType(IValueType inputType) {
@@ -109,15 +115,12 @@ public class VariableData {
 			buf.writeBoolean(false);
 		}
 		NetworkHelper.writeCollection(buf, inputTypes, TypeData.STREAM_CODEC);
+		NetworkHelper.writeMap(buf, aspectProperties, FriendlyByteBuf::writeUtf, ValueData.STREAM_CODEC);
 	}
 
 	public static VariableData fromFacade(IVariableFacade variableFacade, INetwork network, IPartNetwork partNetwork) {
 		var variable = variableFacade.getVariable(network, partNetwork);
 		VariableData variableData = new VariableData(variableFacade, variable);
-
-//		if(variableFacade instanceof IProxyVariableFacade proxyVariableFacade) {
-//			variable = proxyVariableFacade.getVariable(network, partNetwork);
-//		}
 
 		try {
 			IValue value = variable.getValue();
@@ -129,11 +132,32 @@ public class VariableData {
 		}
 
 		if(variableFacade instanceof IAspectVariableFacade aspectVariableFacade) {
+			var aspect = aspectVariableFacade.getAspect();
+			int sourcePartId = aspectVariableFacade.getPartId();
+			var sourcePartState = partNetwork.getPartState(sourcePartId);
+			var aspectProperties = sourcePartState.getAspectProperties(aspect);
+			IAspectProperties defaultProps = aspect.getDefaultProperties();
+
+			for(Object propertyObj : aspect.getPropertyTypes()) {
+				if(propertyObj instanceof IAspectPropertyTypeInstance<?, ?> property) {
+					IValue value = aspectProperties.getValue(property);
+					IValue defaultValue = defaultProps.getValue(property);
+					try {
+						ValueData valueData = ValueTypeTranslator.translateValueType(value.getType(), value);
+						valueData.isDefaultValue = value.equals(defaultValue);
+						variableData.aspectProperties.put(property.getTranslationKey(), valueData);
+					} catch (EvaluationException e) {
+						IntegratedManager.LOGGER.warn("Error translating value type for aspect property: {}, {}", property.getTranslationKey(), e);
+					}
+				}
+			}
+
 			ItemStack fakeVariableStack = IDRegistries.facadeHandlerRegistry.writeVariableFacadeItem(
 				new ItemStack(RegistryEntries.ITEM_VARIABLE),
 				aspectVariableFacade,
 				IDRegistries.aspectRegistry
 			);
+
 			variableData.translationKey = aspectVariableFacade.getAspect().getTranslationKey();
 			variableData.variableStack = fakeVariableStack.isEmpty() ? new ItemStack(RegistryEntries.ITEM_VARIABLE) : fakeVariableStack;
 			variableData.aspect = aspectVariableFacade.getAspect().getUniqueName();

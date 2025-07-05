@@ -13,6 +13,9 @@ import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetItemStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 
+import java.util.Comparator;
+import java.util.List;
+
 public class VariableFacadeWidget extends NodeWidget<VariableData> {
 	WidgetItemStack variableWidget;
 
@@ -103,12 +106,36 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 				);
 			}
 
-
-
 			if(table.rows() > 0) {
 				variableWidget.addTooltipElement(
 					new LabeledLineSeparatorTooltipComponent(variableWidget, "IO"),
 					table
+				);
+			}
+
+
+			TableTooltipComponent tableAspectProperties = new TableTooltipComponent();
+			List<String> properties = variable.aspectProperties.keySet().stream().sorted(Comparator.comparing(I18n::get)).toList();
+			for(String propertyTranslationKey : properties) {
+				var propertyValue = variable.aspectProperties.get(propertyTranslationKey);
+				if(propertyValue.isDefaultValue) {
+					tableAspectProperties.addRow(
+						StringTooltipComponent.cyan(I18n.get(propertyTranslationKey)),
+						WrappedStringTooltipComponent.gray(propertyValue.getBestName())
+					);
+				} else {
+					tableAspectProperties.addRow(
+						StringTooltipComponent.cyan(I18n.get(propertyTranslationKey)),
+						WrappedStringTooltipComponent.green(propertyValue.getBestName())
+					);
+				}
+
+			}
+
+			if(tableAspectProperties.rows() > 0) {
+				variableWidget.addTooltipElement(
+					new LabeledLineSeparatorTooltipComponent(variableWidget, I18n.get("integratedmanager.message.properties")),
+					tableAspectProperties
 				);
 			}
 		}

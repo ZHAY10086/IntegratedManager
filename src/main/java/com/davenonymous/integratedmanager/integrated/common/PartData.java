@@ -1,12 +1,17 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
 import com.davenonymous.integratedmanager.integrated.UnknownThings;
+import com.davenonymous.integratedmanager.networking.NetworkHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class PartData {
 	public ResourceLocation uniqueName = UnknownThings.Part;
@@ -17,6 +22,7 @@ public class PartData {
 	public ItemStack targetStack = ItemStack.EMPTY;
 	public String level;
 	public ResourceLocation activeAspect = UnknownThings.Aspect;
+	public Map<String, ValueData> activeAspectProperties = new HashMap<>();
 
 	public PartData() {
 	}
@@ -38,6 +44,8 @@ public class PartData {
 			this.level = buf.readUtf(256); // Read level name, if present
 		}
 		this.activeAspect = buf.readResourceLocation();
+
+		this.activeAspectProperties = NetworkHelper.readMap(buf, HashMap::new, FriendlyByteBuf::readUtf, ValueData.STREAM_CODEC);
 	}
 
 	public void writeToBuffer(RegistryFriendlyByteBuf buf) {
@@ -69,6 +77,7 @@ public class PartData {
 			buf.writeBoolean(false);
 		}
 		buf.writeResourceLocation(activeAspect);
+		NetworkHelper.writeMap(buf, activeAspectProperties, FriendlyByteBuf::writeUtf, ValueData.STREAM_CODEC);
 	}
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PartData> STREAM_CODEC =

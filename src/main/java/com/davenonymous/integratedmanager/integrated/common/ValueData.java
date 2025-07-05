@@ -1,6 +1,7 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
 import com.davenonymous.integratedmanager.networking.NetworkHelper;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
@@ -21,6 +22,8 @@ public class ValueData extends TypeData {
 
 	public List<ValueData> listValues = new ArrayList<>();
 	public TypeData listType = null;
+
+	public boolean isDefaultValue = false;
 
 	public ValueData(IValueType valueType) {
 		super(valueType);
@@ -46,6 +49,8 @@ public class ValueData extends TypeData {
 		} else {
 			this.listType = null;
 		}
+
+		this.isDefaultValue = buf.readBoolean();
 	}
 
 	@Override
@@ -70,6 +75,8 @@ public class ValueData extends TypeData {
 		} else {
 			buf.writeBoolean(false);
 		}
+
+		buf.writeBoolean(isDefaultValue);
 	}
 
 	public void addInputType(IValueType inputType) {
@@ -86,6 +93,10 @@ public class ValueData extends TypeData {
 		if (valueData != null) {
 			this.listValues.add(valueData);
 		}
+	}
+
+	public String getBestName() {
+		return I18n.exists(this.valueTranslationKey) ? I18n.get(this.valueTranslationKey) : this.stringValue;
 	}
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ValueData> STREAM_CODEC = StreamCodec.ofMember(

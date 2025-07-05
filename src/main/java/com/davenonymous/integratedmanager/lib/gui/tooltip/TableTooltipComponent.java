@@ -33,7 +33,8 @@ public class TableTooltipComponent implements TooltipComponent, ClientTooltipCom
 	private int highestColumn = 0;
 	private int longestRow = 0;
 
-	private int padding = 2;
+	private int verticalPadding = 2;
+	private int horizontalPadding = 4;
 
 	public TableTooltipComponent() {
 
@@ -67,8 +68,8 @@ public class TableTooltipComponent implements TooltipComponent, ClientTooltipCom
 	}
 
 	private void updateTableSize() {
-		int totalHeight = rowHeights.values().stream().mapToInt(Integer::intValue).sum() + (rowHeights.size() * padding);
-		int totalWidth = colWidths.values().stream().mapToInt(Integer::intValue).sum() + (colWidths.size() * padding);
+		int totalHeight = rowHeights.values().stream().mapToInt(Integer::intValue).sum() + (rowHeights.size() * verticalPadding);
+		int totalWidth = colWidths.values().stream().mapToInt(Integer::intValue).sum() + (colWidths.size() * verticalPadding);
 
 		this.highestColumn = totalHeight;
 		this.longestRow = totalWidth;
@@ -176,8 +177,13 @@ public class TableTooltipComponent implements TooltipComponent, ClientTooltipCom
 		return this.components.get(row, col).component;
 	}
 
-	public TableTooltipComponent setPadding(int padding) {
-		this.padding = padding;
+	public TableTooltipComponent setVerticalPadding(int verticalPadding) {
+		this.verticalPadding = verticalPadding;
+		return this;
+	}
+
+	public TableTooltipComponent setHorizontalPadding(int horizontalPadding) {
+		this.horizontalPadding = horizontalPadding;
 		return this;
 	}
 
@@ -205,13 +211,13 @@ public class TableTooltipComponent implements TooltipComponent, ClientTooltipCom
 		int yPos = y;
 		for (int row : components.rowKeySet()) {
 			if (row > 0) {
-				yPos += rowHeights.getOrDefault(row - 1, 0) + padding; // Add padding between rows
+				yPos += rowHeights.getOrDefault(row - 1, 0) + verticalPadding; // Add padding between rows
 			}
 
 			int xPos = x;
 			for(int col : components.columnKeySet()) {
 				if(col > 0) {
-					xPos += colWidths.getOrDefault(col - 1, 0) + padding; // Add padding between columns
+					xPos += colWidths.getOrDefault(col - 1, 0) + horizontalPadding; // Add padding between columns
 				}
 
 				if(!components.contains(row, col)) {

@@ -5,6 +5,7 @@ import com.davenonymous.integratedmanager.integrated.common.*;
 import com.davenonymous.integratedmanager.networking.NetworkElementInfo;
 import com.davenonymous.integratedmanager.networking.NetworkMasterInfo;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
@@ -38,6 +39,8 @@ import org.cyclops.integrateddynamics.api.part.PartTarget;
 import org.cyclops.integrateddynamics.api.part.aspect.IAspect;
 import org.cyclops.integrateddynamics.api.part.aspect.IAspectRead;
 import org.cyclops.integrateddynamics.api.part.aspect.IAspectWrite;
+import org.cyclops.integrateddynamics.api.part.aspect.property.IAspectProperties;
+import org.cyclops.integrateddynamics.api.part.aspect.property.IAspectPropertyTypeInstance;
 import org.cyclops.integrateddynamics.api.part.read.IPartTypeReader;
 import org.cyclops.integrateddynamics.api.part.write.IPartStateWriter;
 import org.cyclops.integrateddynamics.api.part.write.IPartTypeWriter;
@@ -232,10 +235,26 @@ public class NetworkAnalysis {
 				if(part instanceof IPartTypeWriter partTypeWriter) {
 					partData.writer = true;
 					//noinspection rawtypes,unchecked
-					IAspectWrite foo = partTypeWriter.getActiveAspect(partTarget, (IPartStateWriter) partNetworkElement.getPartState());
-					if(foo != null) {
-						partData.activeAspect = foo.getUniqueName();
+					IAspectWrite activeAspect = partTypeWriter.getActiveAspect(partTarget, (IPartStateWriter) partNetworkElement.getPartState());
+					if(activeAspect != null) {
+						partData.activeAspect = activeAspect.getUniqueName();
+						IAspectProperties props = activeAspect.getProperties(partTypeWriter, partTarget, ((IPartNetworkElement<?, ?>) networkElement).getPartState());
+						IAspectProperties defaultProps = activeAspect.getDefaultProperties();
+						for(Object propertyObj : activeAspect.getPropertyTypes()) {
+							if(propertyObj instanceof IAspectPropertyTypeInstance<?, ?> property) {
+								IValue value = props.getValue(property);
+								IValue defaultValue = defaultProps.getValue(property);
+								try {
+									ValueData valueData = ValueTypeTranslator.translateValueType(value.getType(), value);
+									valueData.isDefaultValue = value.equals(defaultValue);
+									partData.activeAspectProperties.put(property.getTranslationKey(), valueData);
+								} catch (EvaluationException e) {
+									IntegratedManager.LOGGER.warn("Error translating value type for aspect property: {}, {}", property.getTranslationKey(), e);
+								}
+							}
+						}
 					}
+
 					for(Object aspect : partTypeWriter.getWriteAspects()) {
 						AspectData aspectData = new AspectData((IAspect<?, ?>) aspect);
 						networkElementData.aspects.add(aspectData);

@@ -9,6 +9,7 @@ import com.davenonymous.integratedmanager.lib.gui.event.MouseScrollEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.LabeledLineSeparatorTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.TableTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.WrappedStringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetItemStack;
 import net.minecraft.client.Minecraft;
@@ -20,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
@@ -110,9 +112,34 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 			} else {
 				partWidget.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(translationKey)));
 			}
+
+			TableTooltipComponent table = new TableTooltipComponent();
+			List<String> properties = part.activeAspectProperties.keySet().stream().sorted(Comparator.comparing(I18n::get)).toList();
+			for(String propertyTranslationKey : properties) {
+				var propertyValue = part.activeAspectProperties.get(propertyTranslationKey);
+				if(propertyValue.isDefaultValue) {
+					table.addRow(
+						StringTooltipComponent.cyan(I18n.get(propertyTranslationKey)),
+						WrappedStringTooltipComponent.gray(propertyValue.getBestName())
+					);
+				} else {
+					table.addRow(
+						StringTooltipComponent.cyan(I18n.get(propertyTranslationKey)),
+						WrappedStringTooltipComponent.green(propertyValue.getBestName())
+					);
+				}
+
+			}
+
+			if(table.rows() > 0) {
+				partWidget.addTooltipElement(
+					new LabeledLineSeparatorTooltipComponent(partWidget, I18n.get("integratedmanager.message.properties")),
+					table
+				);
+			}
 		}
 
-		if(data.channelId != -1) {
+		if(!part.writer && data.channelId != -1) {
 			partWidget.addTooltipElement(
 				WidgetFactories.Tooltips.labelValue(I18n.get("aspect.aspecttypes.integrateddynamics.integer.channel") + ":", data.channelId)
 			);
