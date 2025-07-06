@@ -6,6 +6,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
+import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,22 @@ public class ValueData extends TypeData {
 
 	public ValueData(IValueType valueType) {
 		super(valueType);
+	}
+
+	public ValueData(boolean boolValue) {
+		super(ValueTypes.BOOLEAN);
+		if(boolValue) {
+			this.valueTranslationKey = "general.integrateddynamics.true";
+			this.stringValue = "true";
+		} else {
+			this.valueTranslationKey = "general.integrateddynamics.false";
+			this.stringValue = "false";
+		}
+	}
+
+	public ValueData(int intValue) {
+		super(ValueTypes.INTEGER);
+		this.stringValue = String.valueOf(intValue);
 	}
 
 	public ValueData(RegistryFriendlyByteBuf buf) {
