@@ -4,8 +4,6 @@ import com.davenonymous.integratedmanager.IntegratedManager;
 import com.davenonymous.integratedmanager.integrated.common.*;
 import com.davenonymous.integratedmanager.networking.NetworkElementInfo;
 import com.davenonymous.integratedmanager.networking.NetworkMasterInfo;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
@@ -21,16 +19,14 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.cyclops.cyclopscore.datastructure.DimPos;
 import org.cyclops.cyclopscore.helper.BlockEntityHelpers;
+import org.cyclops.integratedcrafting.part.PartTypeInterfaceCrafting;
 import org.cyclops.integrateddynamics.Capabilities;
-import org.cyclops.integrateddynamics.RegistryEntries;
 import org.cyclops.integrateddynamics.api.block.IVariableContainer;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.IValueInterface;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValue;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
-import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 import org.cyclops.integrateddynamics.api.item.IVariableFacade;
-import org.cyclops.integrateddynamics.api.item.IVariableFacadeHolder;
 import org.cyclops.integrateddynamics.api.network.*;
 import org.cyclops.integrateddynamics.api.part.IPartState;
 import org.cyclops.integrateddynamics.api.part.IPartType;
@@ -212,6 +208,27 @@ public class NetworkAnalysis {
 				if (targetLevel != null) {
 					BlockState targetState = targetLevel.getBlockState(partData.targetPos);
 					partData.targetStack = new ItemStack(targetState.getBlock());
+				}
+
+				if(part instanceof PartTypeInterfaceCrafting) {
+					if(partNetworkElement.getPartState() instanceof PartTypeInterfaceCrafting.State craftingInterfaceState) {
+						int craftingChannel = craftingInterfaceState.getChannelCrafting();
+						boolean disabledCraftingCheck = craftingInterfaceState.isDisableCraftingCheck();
+						boolean blockingMode = craftingInterfaceState.getCraftingJobHandler().isBlockingJobsMode();
+						var variableStore = craftingInterfaceState.getInventoryVariables();
+						partData.activeAspectProperties.put("gui.integratedcrafting.partsettings.channel.interface", new ValueData(craftingChannel));
+						partData.activeAspectProperties.put("gui.integratedcrafting.partsettings.craftingcheckdisabled", new ValueData(disabledCraftingCheck));
+						partData.activeAspectProperties.put("gui.integratedcrafting.partsettings.blockingmode", new ValueData(blockingMode));
+
+						for(ItemStack stack : variableStore.getItemStacks()) {
+							Optional<IVariableFacade> optVariableFacade = ValueTypeTranslator.variableFacadeFromItemStack(stack);
+							if(optVariableFacade.isEmpty()) {
+								continue;
+							}
+							VariableData tileVariableData = VariableData.fromFacade(optVariableFacade.get(), network, partNetwork);
+							networkElementData.variables.add(tileVariableData);
+						}
+					}
 				}
 
 				if(part instanceof IPartTypeReader<?,?> partTypeReader) {
