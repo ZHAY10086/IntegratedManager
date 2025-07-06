@@ -156,21 +156,12 @@ public class NetworkAnalysis {
 
 							for(int i = 0; i < inventory.getItemHandler().getSlots(); i++) {
 								ItemStack stack = inventory.getItemHandler().getStackInSlot(i);
-								if(stack.isEmpty() || !stack.is(RegistryEntries.ITEM_VARIABLE)) {
+								Optional<IVariableFacade> optVariableFacade = ValueTypeTranslator.variableFacadeFromItemStack(stack);
+								if(optVariableFacade.isEmpty()) {
 									continue;
 								}
 
-								IVariableFacadeHolder facadeHolder = stack.getCapability(Capabilities.VariableFacade.ITEM);
-								if(facadeHolder == null) {
-									continue;
-								}
-
-								IVariableFacade variableFacade = facadeHolder.getVariableFacade(ValueDeseralizationContext.of(Minecraft.getInstance().level));
-								if(variableFacade == null) {
-									continue;
-								}
-
-								VariableData tileVariableData = VariableData.fromFacade(variableFacade, network, partNetwork);
+								VariableData tileVariableData = VariableData.fromFacade(optVariableFacade.get(), network, partNetwork);
 								networkElementData.variables.add(tileVariableData);
 							}
 						}

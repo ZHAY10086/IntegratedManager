@@ -3,6 +3,7 @@ package com.davenonymous.integratedmanager.integrated.server;
 import com.davenonymous.integratedmanager.IntegratedManager;
 import com.davenonymous.integratedmanager.integrated.common.TypeData;
 import com.davenonymous.integratedmanager.integrated.common.ValueData;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -11,12 +12,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeDefinition;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
+import org.cyclops.integrateddynamics.Capabilities;
+import org.cyclops.integrateddynamics.RegistryEntries;
 import org.cyclops.integrateddynamics.api.IntegratedDynamicsAPI;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValue;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValueTypeRegistry;
+import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
+import org.cyclops.integrateddynamics.api.item.IVariableFacade;
 import org.cyclops.integrateddynamics.api.item.IVariableFacadeHandlerRegistry;
+import org.cyclops.integrateddynamics.api.item.IVariableFacadeHolder;
 import org.cyclops.integrateddynamics.core.evaluate.variable.*;
 
 import java.util.Optional;
@@ -72,6 +78,23 @@ public class ValueTypeTranslator {
 
 	}
 
+	public static Optional<IVariableFacade> variableFacadeFromItemStack(ItemStack stack) {
+		if(stack.isEmpty() || !stack.is(RegistryEntries.ITEM_VARIABLE)) {
+			return Optional.empty();
+		}
+
+		IVariableFacadeHolder facadeHolder = stack.getCapability(Capabilities.VariableFacade.ITEM);
+		if(facadeHolder == null) {
+			return Optional.empty();
+		}
+
+		IVariableFacade variableFacade = facadeHolder.getVariableFacade(ValueDeseralizationContext.of(Minecraft.getInstance().level));
+		if(variableFacade == null) {
+			return Optional.empty();
+		}
+
+		return Optional.of(variableFacade);
+	}
 
 	public static ValueData translateValueType(IValueType<?> valueType, IValue value) throws EvaluationException {
 		ValueData valueData = new ValueData(valueType);
