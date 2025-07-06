@@ -112,7 +112,9 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 			} else {
 				partWidget.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(translationKey)));
 			}
+		}
 
+		if(!part.activeAspectProperties.isEmpty()) {
 			TableTooltipComponent table = new TableTooltipComponent();
 			List<String> properties = part.activeAspectProperties.keySet().stream().sorted(Comparator.comparing(I18n::get)).toList();
 			for(String propertyTranslationKey : properties) {
@@ -150,7 +152,7 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 			partWidget.addTooltipElement(
 				new LabeledLineSeparatorTooltipComponent(partWidget, I18n.get("info_book.integrateddynamics.tutorials.aspects"))
 			);
-			for(var aspect : data.aspects) {
+			for(var aspect : data.aspects.stream().sorted(Comparator.comparing(aspectData -> I18n.get(aspectData.translationKey))).toList()) {
 				var label = "- " + (I18n.exists(aspect.translationKey) ? I18n.get(aspect.translationKey) : aspect.uniqueName.toString());
 				if(part.activeAspect.equals(aspect.uniqueName)) {
 					partWidget.addTooltipElement(StringTooltipComponent.green(label));
