@@ -71,6 +71,10 @@ public final class WrappedStringTooltipComponent implements SerializableTooltipC
 		return new WrappedStringTooltipComponent(message, ColorHelper.COLOR_CYAN, defaultMaxWidth());
 	}
 
+	public static WrappedStringTooltipComponent red(String message) {
+		return new WrappedStringTooltipComponent(message, ChatFormatting.RED.getColor(), defaultMaxWidth());
+	}
+
 	@Override
 	public int getHeight() {
 		return GUIHelper.wordWrapHeight(Minecraft.getInstance().font, FormattedText.of(message), maxWidth);

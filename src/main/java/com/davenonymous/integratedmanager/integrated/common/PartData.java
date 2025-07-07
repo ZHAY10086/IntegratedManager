@@ -11,7 +11,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PartData {
@@ -26,6 +28,7 @@ public class PartData {
 	public Map<String, ValueData> activeAspectProperties = new HashMap<>();
 	public String partClassName = "UnknownPartClass";
 	public String translationKey = "";
+	public List<String> errors = new ArrayList<>();
 
 	public PartData() {
 	}
@@ -60,6 +63,7 @@ public class PartData {
 		this.activeAspect = buf.readResourceLocation();
 
 		this.activeAspectProperties = NetworkHelper.readMap(buf, HashMap::new, FriendlyByteBuf::readUtf, ValueData.STREAM_CODEC);
+		this.errors = NetworkHelper.readCollection(buf, ArrayList::new, FriendlyByteBuf::readUtf);
 	}
 
 	public void writeToBuffer(RegistryFriendlyByteBuf buf) {
@@ -106,6 +110,7 @@ public class PartData {
 
 		buf.writeResourceLocation(activeAspect);
 		NetworkHelper.writeMap(buf, activeAspectProperties, FriendlyByteBuf::writeUtf, ValueData.STREAM_CODEC);
+		NetworkHelper.writeCollection(buf, errors, FriendlyByteBuf::writeUtf);
 	}
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, PartData> STREAM_CODEC =

@@ -10,6 +10,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -42,6 +44,7 @@ import org.cyclops.integrateddynamics.api.part.read.IPartTypeReader;
 import org.cyclops.integrateddynamics.api.part.write.IPartStateWriter;
 import org.cyclops.integrateddynamics.api.part.write.IPartTypeWriter;
 import org.cyclops.integrateddynamics.core.network.TileNetworkElement;
+import org.cyclops.integrateddynamics.core.part.write.PartStateWriterBase;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -99,9 +102,6 @@ public class NetworkAnalysis {
  		this.networkId = network.hashCode();
 		this.networkElements = new ArrayList<>();
 
-
-
-
 		DataComponentType<?> facadeComponentType = BuiltInRegistries.DATA_COMPONENT_TYPE.get(
 			ResourceLocation.fromNamespaceAndPath("integrateddynamics", "variable_facade"));
 		if(facadeComponentType == null) {
@@ -127,7 +127,6 @@ public class NetworkAnalysis {
 			if (networkElement instanceof ISidedNetworkElement sidedNetworkElement) {
 				networkElementData.side = sidedNetworkElement.getSide();
 			}
-
 
 
 			if(networkElement instanceof TileNetworkElement<?> tileNetworkElement) {
@@ -229,6 +228,11 @@ public class NetworkAnalysis {
 									IntegratedManager.LOGGER.warn("Error translating value type for aspect property: {}, {}", property.getTranslationKey(), e);
 								}
 							}
+						}
+
+						if(partNetworkElement.getPartState() instanceof PartStateWriterBase partStateWriterBase) {
+							List<MutableComponent> errors = partStateWriterBase.getErrors(activeAspect);
+							errors.stream().map(c -> c.getContents() instanceof TranslatableContents t ? t.getKey() : c.getString()).forEach(partData.errors::add);
 						}
 					}
 

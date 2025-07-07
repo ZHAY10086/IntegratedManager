@@ -85,8 +85,19 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 				StringTooltipComponent.orange("#" + getValue().partId))
 		);
 
-		if(I18n.exists(part.translationKey + ".info")) {
+		boolean hasActiveAspect = part.activeAspect != null && part.activeAspect != UnknownThings.Aspect && getValue().getAspect(part.activeAspect) != null;
+		if(!hasActiveAspect && I18n.exists(part.translationKey + ".info")) {
 			partWidget.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(part.translationKey + ".info")));
+		}
+
+		if(!part.errors.isEmpty()) {
+			for(String errorMessage : part.errors) {
+				var translatedMessage = errorMessage;
+				if(I18n.exists(errorMessage)) {
+					translatedMessage = I18n.get(errorMessage);
+				}
+				partWidget.addTooltipElement(WrappedStringTooltipComponent.red(translatedMessage));
+			}
 		}
 
 		updateTooltips();
@@ -127,7 +138,7 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 			}
 		}
 
-		if(!part.activeAspectProperties.isEmpty()) {
+		if(part.errors.isEmpty() && !part.activeAspectProperties.isEmpty()) {
 			TableTooltipComponent table = new TableTooltipComponent();
 			List<String> properties = part.activeAspectProperties.keySet().stream().sorted(Comparator.comparing(I18n::get)).toList();
 			for(String propertyTranslationKey : properties) {

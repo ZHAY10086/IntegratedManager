@@ -8,6 +8,7 @@ import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPartNetwork;
 import org.cyclops.integrateddynamics.api.network.IPartNetworkElement;
 import org.cyclops.integrateddynamics.api.part.IPartType;
+import org.cyclops.integratedtunnels.core.part.PartTypeInterfacePositionedAddon;
 import org.cyclops.integratedtunnels.core.part.PartTypeInterfacePositionedAddonFiltering;
 
 @SuppressWarnings("rawtypes")
@@ -15,6 +16,13 @@ import org.cyclops.integratedtunnels.core.part.PartTypeInterfacePositionedAddonF
 public class Tunnels implements INetworkAnalyzer {
 	@Override
 	public void visitNetworkPart(IPartNetworkElement partNetworkElement, IPartType part, NetworkElementData gatheredData, INetwork network, IPartNetwork partNetwork) {
+
+		if(part instanceof PartTypeInterfacePositionedAddon && partNetworkElement.getPartState() instanceof PartTypeInterfacePositionedAddon.State state) {
+			int channel = state.getChannelInterface();
+
+			gatheredData.partData.activeAspectProperties.put("gui.integratedtunnels.partsettings.channel.interface",
+				new ValueData(channel).setIsDefaultValue(channel == 0));
+		}
 
 		if(part instanceof PartTypeInterfacePositionedAddonFiltering && partNetworkElement.getPartState() instanceof PartTypeInterfacePositionedAddonFiltering.State filteringState) {
 			int channel = filteringState.getChannelInterface();
