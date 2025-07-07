@@ -3,6 +3,7 @@ package com.davenonymous.integratedmanager.gui;
 import com.davenonymous.integratedmanager.integrated.common.ValueData;
 import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.HBoxTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.LeftRightAlignedTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.WrappedStringTooltipComponent;
 import net.minecraft.client.resources.language.I18n;

@@ -5,13 +5,12 @@ import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.TypeData;
 import com.davenonymous.integratedmanager.integrated.common.ValueData;
 import com.davenonymous.integratedmanager.integrated.common.VariableData;
-import com.davenonymous.integratedmanager.lib.gui.tooltip.LabeledLineSeparatorTooltipComponent;
-import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
-import com.davenonymous.integratedmanager.lib.gui.tooltip.TableTooltipComponent;
-import com.davenonymous.integratedmanager.lib.gui.tooltip.WrappedStringTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.*;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetItemStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 
 import java.util.Comparator;
 import java.util.List;
@@ -25,7 +24,11 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 
 		variableWidget = new WidgetItemStack(variable.variableStack.copy());
 		variableWidget.setDrawTooltip(false);
-		variableWidget.setTooltipElements(WidgetFactories.Tooltips.variableHeader(variable, false));
+		TooltipComponent[] tooltipComponents = WidgetFactories.Tooltips.variableHeader(variable, false);
+		if(tooltipComponents.length > 0 && variable.id != -1 && tooltipComponents[0] instanceof ClientTooltipComponent firstRow) {
+			tooltipComponents[0] = new LeftRightAlignedTooltipComponent(variableWidget, firstRow, StringTooltipComponent.cyan("#" + String.valueOf(variable.id)));
+		}
+		variableWidget.setTooltipElements(tooltipComponents);
 
 		boolean isValueType = variable.facadeClassName.equals("ValueTypeVariableFacade");
 		if(!isValueType) {
@@ -178,12 +181,22 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 		}
 
 		if(Minecraft.getInstance().options.advancedItemTooltips) {
+			TableTooltipComponent table = new TableTooltipComponent();
+			table.addRow(
+				StringTooltipComponent.cyan(I18n.get("integratedmanager.message.class_name") + ":"),
+				WrappedStringTooltipComponent.gray(variable.facadeClassName)
+			);
+			table.addRow(
+				StringTooltipComponent.cyan(I18n.get("aspect.integrateddynamics.name") + ":"),
+				WrappedStringTooltipComponent.gray(variable.aspect.toString())
+			);
+			table.addRow(
+				StringTooltipComponent.cyan(I18n.get("valuetype.integrateddynamics.value_type") + ":"),
+				WrappedStringTooltipComponent.gray(variable.type.toString())
+			);
 			variableWidget.addTooltipElement(
 				LabeledLineSeparatorTooltipComponent.advancedInfos(variableWidget),
-				WidgetFactories.Tooltips.labelValue("Variable ID:", variable.id),
-				WidgetFactories.Tooltips.labelValue("Class:", variable.facadeClassName),
-				WidgetFactories.Tooltips.labelValue(I18n.get("aspect.integrateddynamics.name") + ":", variable.aspect),
-				WidgetFactories.Tooltips.labelValue(I18n.get("valuetype.integrateddynamics.value_type") + ":", variable.type)
+				table
 			);
 		}
 

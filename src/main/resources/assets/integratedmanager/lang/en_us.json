@@ -10,6 +10,8 @@
 	"integratedmanager.message.scroll_to_select_then_click_to_place": "Scroll to select, then click to place",
 	"integratedmanager.message.scroll_to_select_then_choose_a_variable_to_connect": "Scroll to select, then choose a variable to connect",
 	"integratedmanager.message.properties": "Properties",
+	"integratedmanager.message.variable_id": "Variable ID",
+	"integratedmanager.message.class_name": "Class",
 
 	"integratedmanager.configuration.title": "Integrated Manager Configuration",
 

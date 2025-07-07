@@ -92,10 +92,22 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 
 		var data = getValue();
 		if(Minecraft.getInstance().options.advancedItemTooltips) {
+			TableTooltipComponent table = new TableTooltipComponent();
+			table.addRow(
+				StringTooltipComponent.cyan(I18n.get("gui.integrateddynamics.diagnostics.table.part")),
+				WrappedStringTooltipComponent.gray(String.valueOf(data.partId))
+			);
+			table.addRow(
+				StringTooltipComponent.cyan(I18n.get("gui.integrateddynamics.diagnostics.table.position")),
+				WrappedStringTooltipComponent.gray(data.position.toShortString())
+			);
+			table.addRow(
+				StringTooltipComponent.cyan(I18n.get("aspect.aspecttypes.integrateddynamics.integer.channel")),
+				WrappedStringTooltipComponent.gray(String.valueOf(data.channelId))
+			);
 			partWidget.addTooltipElement(
 				LabeledLineSeparatorTooltipComponent.advancedInfos(partWidget),
-				WidgetFactories.Tooltips.labelValue(I18n.get("gui.integrateddynamics.diagnostics.table.part") + ":", data.partId),
-				WidgetFactories.Tooltips.labelValue(I18n.get("gui.integrateddynamics.diagnostics.table.position") + ":", data.position.toShortString())
+				table
 			);
 		}
 	}
@@ -139,12 +151,6 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 					table
 				);
 			}
-		}
-
-		if(!part.writer && data.channelId != -1) {
-			partWidget.addTooltipElement(
-				WidgetFactories.Tooltips.labelValue(I18n.get("aspect.aspecttypes.integrateddynamics.integer.channel") + ":", data.channelId)
-			);
 		}
 
 		if(!(part.writer && hasActiveAspect) && !data.aspects.isEmpty()) {

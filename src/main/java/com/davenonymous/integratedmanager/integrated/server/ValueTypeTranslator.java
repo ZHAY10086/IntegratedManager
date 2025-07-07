@@ -1,6 +1,7 @@
 package com.davenonymous.integratedmanager.integrated.server;
 
 import com.davenonymous.integratedmanager.IntegratedManager;
+import com.davenonymous.integratedmanager.integrated.IDRegistries;
 import com.davenonymous.integratedmanager.integrated.common.TypeData;
 import com.davenonymous.integratedmanager.integrated.common.ValueData;
 import net.minecraft.client.Minecraft;
@@ -14,14 +15,12 @@ import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeDefini
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.Capabilities;
 import org.cyclops.integrateddynamics.RegistryEntries;
-import org.cyclops.integrateddynamics.api.IntegratedDynamicsAPI;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValue;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValueTypeRegistry;
 import org.cyclops.integrateddynamics.api.evaluate.variable.ValueDeseralizationContext;
 import org.cyclops.integrateddynamics.api.item.IVariableFacade;
-import org.cyclops.integrateddynamics.api.item.IVariableFacadeHandlerRegistry;
 import org.cyclops.integrateddynamics.api.item.IVariableFacadeHolder;
 import org.cyclops.integrateddynamics.core.evaluate.variable.*;
 
@@ -29,8 +28,6 @@ import java.util.Optional;
 
 @SuppressWarnings("unchecked")
 public class ValueTypeTranslator {
-	private static final IVariableFacadeHandlerRegistry facadeHandlerRegistry;
-	private static final IValueTypeRegistry valueTypeRegistry;
 	private static final IValueType<ValueTypeBoolean.ValueBoolean> valueTypeBoolean;
 	private static final IValueType<ValueTypeInteger.ValueInteger> valueTypeInteger;
 	private static final IValueType<ValueTypeDouble.ValueDouble> valueTypeDouble;
@@ -47,19 +44,7 @@ public class ValueTypeTranslator {
 	private static final IValueType<ValueObjectTypeRecipe.ValueRecipe> valueObjectTypeRecipe;
 
 	static {
-
-		var idRegistryManager = IntegratedDynamicsAPI.getRegistryManager();
-		facadeHandlerRegistry = idRegistryManager.getRegistry(IVariableFacadeHandlerRegistry.class);
-		if (facadeHandlerRegistry == null) {
-			IntegratedManager.LOGGER.warn("No VariableFacadeHandlerRegistry found, cannot analyze variables.");
-			throw new RuntimeException("No VariableFacadeHandlerRegistry found, cannot analyze variables.");
-		}
-
-		valueTypeRegistry = idRegistryManager.getRegistry(IValueTypeRegistry.class);
-		if(valueTypeRegistry == null) {
-			IntegratedManager.LOGGER.warn("No ValueTypeRegistry found, cannot analyze values.");
-			throw new RuntimeException("No ValueTypeRegistry found, cannot analyze values.");
-		}
+		IValueTypeRegistry valueTypeRegistry = IDRegistries.valueTypeRegistry;
 
 		valueTypeOperator = valueTypeRegistry.getValueType(ValueTypes.OPERATOR.getUniqueName());
 		valueTypeBoolean = valueTypeRegistry.getValueType(ValueTypes.BOOLEAN.getUniqueName());
@@ -180,6 +165,7 @@ public class ValueTypeTranslator {
 		} else if(valueType.correspondsTo(valueObjectTypeIngredients)) {
 			ValueObjectTypeIngredients.ValueIngredients ingredientsValue = value.cast(valueObjectTypeIngredients);
 			valueData.stringValue = ingredientsValue.getRawValue().toString();
+
 		} else if(valueType.correspondsTo(valueObjectTypeRecipe)) {
 			ValueObjectTypeRecipe.ValueRecipe recipeValue = value.cast(valueObjectTypeRecipe);
 			if(recipeValue.getRawValue().isEmpty()) {

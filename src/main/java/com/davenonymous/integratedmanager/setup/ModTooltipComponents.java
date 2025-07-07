@@ -29,5 +29,6 @@ public class ModTooltipComponents {
 		event.register(LineSeparatorTooltipComponent.class, Function.identity());
 		event.register(LabeledLineSeparatorTooltipComponent.class, Function.identity());
 		event.register(TableTooltipComponent.class, Function.identity());
+		event.register(LeftRightAlignedTooltipComponent.class, Function.identity());
 	}
 }

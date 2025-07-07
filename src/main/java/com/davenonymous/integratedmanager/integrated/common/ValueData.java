@@ -112,6 +112,11 @@ public class ValueData extends TypeData {
 		}
 	}
 
+	public ValueData setIsDefaultValue(boolean isDefaultValue) {
+		this.isDefaultValue = isDefaultValue;
+		return this;
+	}
+
 	public String getBestName() {
 		return I18n.exists(this.valueTranslationKey) ? I18n.get(this.valueTranslationKey) : this.stringValue;
 	}
