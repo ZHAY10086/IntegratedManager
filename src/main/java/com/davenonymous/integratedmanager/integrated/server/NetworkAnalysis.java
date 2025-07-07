@@ -4,6 +4,8 @@ import com.davenonymous.integratedmanager.IntegratedManager;
 import com.davenonymous.integratedmanager.integrated.common.*;
 import com.davenonymous.integratedmanager.networking.NetworkElementInfo;
 import com.davenonymous.integratedmanager.networking.NetworkMasterInfo;
+import com.davenonymous.integratedmanager.setup.integrated.Analyzers;
+import com.davenonymous.integratedmanager.setup.integrated.INetworkAnalyzer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponentType;
@@ -19,7 +21,6 @@ import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.cyclops.cyclopscore.datastructure.DimPos;
 import org.cyclops.cyclopscore.helper.BlockEntityHelpers;
-import org.cyclops.integratedcrafting.part.PartTypeInterfaceCrafting;
 import org.cyclops.integrateddynamics.Capabilities;
 import org.cyclops.integrateddynamics.api.block.IVariableContainer;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
@@ -40,7 +41,6 @@ import org.cyclops.integrateddynamics.api.part.aspect.property.IAspectPropertyTy
 import org.cyclops.integrateddynamics.api.part.read.IPartTypeReader;
 import org.cyclops.integrateddynamics.api.part.write.IPartStateWriter;
 import org.cyclops.integrateddynamics.api.part.write.IPartTypeWriter;
-import org.cyclops.integrateddynamics.blockentity.BlockEntityProxy;
 import org.cyclops.integrateddynamics.core.network.TileNetworkElement;
 
 import javax.annotation.Nullable;
@@ -132,6 +132,7 @@ public class NetworkAnalysis {
 
 			if(networkElement instanceof TileNetworkElement<?> tileNetworkElement) {
 				var tileData = new TileData();
+				networkElementData.tileData = tileData;
 				Level level = tileNetworkElement.getPos().getLevel(true);
 				if(level != null) {
 					tileData.level = level.dimension().location().toString();
@@ -146,20 +147,8 @@ public class NetworkAnalysis {
 							tileData.blockEntityClass = blockEntity.getClass().getSimpleName();
 						}
 
-						if(blockEntity instanceof BlockEntityProxy proxy) {
-							tileData.proxyId = proxy.getProxyId();
-							var inventory = proxy.getInventory();
-
-							for(int i = 0; i < inventory.getItemHandler().getSlots(); i++) {
-								ItemStack stack = inventory.getItemHandler().getStackInSlot(i);
-								Optional<IVariableFacade> optVariableFacade = ValueTypeTranslator.variableFacadeFromItemStack(stack);
-								if(optVariableFacade.isEmpty()) {
-									continue;
-								}
-
-								VariableData tileVariableData = VariableData.fromFacade(optVariableFacade.get(), network, partNetwork);
-								networkElementData.variables.add(tileVariableData);
-							}
+						for(INetworkAnalyzer analyzer : Analyzers.analyzers) {
+							analyzer.visitNetworkTile(tileNetworkElement, blockEntity, networkElementData, network, partNetwork);
 						}
 					}
 				}
@@ -210,27 +199,6 @@ public class NetworkAnalysis {
 					partData.targetStack = new ItemStack(targetState.getBlock());
 				}
 
-				if(part instanceof PartTypeInterfaceCrafting) {
-					if(partNetworkElement.getPartState() instanceof PartTypeInterfaceCrafting.State craftingInterfaceState) {
-						int craftingChannel = craftingInterfaceState.getChannelCrafting();
-						boolean disabledCraftingCheck = craftingInterfaceState.isDisableCraftingCheck();
-						boolean blockingMode = craftingInterfaceState.getCraftingJobHandler().isBlockingJobsMode();
-						var variableStore = craftingInterfaceState.getInventoryVariables();
-						partData.activeAspectProperties.put("gui.integratedcrafting.partsettings.channel.interface", new ValueData(craftingChannel));
-						partData.activeAspectProperties.put("gui.integratedcrafting.partsettings.craftingcheckdisabled", new ValueData(disabledCraftingCheck));
-						partData.activeAspectProperties.put("gui.integratedcrafting.partsettings.blockingmode", new ValueData(blockingMode));
-
-						for(ItemStack stack : variableStore.getItemStacks()) {
-							Optional<IVariableFacade> optVariableFacade = ValueTypeTranslator.variableFacadeFromItemStack(stack);
-							if(optVariableFacade.isEmpty()) {
-								continue;
-							}
-							VariableData tileVariableData = VariableData.fromFacade(optVariableFacade.get(), network, partNetwork);
-							networkElementData.variables.add(tileVariableData);
-						}
-					}
-				}
-
 				if(part instanceof IPartTypeReader<?,?> partTypeReader) {
 					partData.reader = true;
 					for(IAspectRead<?, ?> aspect : partTypeReader.getReadAspects()) {
@@ -270,6 +238,14 @@ public class NetworkAnalysis {
 				}
 
 				networkElementData.partData = partData;
+
+				for(INetworkAnalyzer analyzer : Analyzers.analyzers) {
+					analyzer.visitNetworkPart(partNetworkElement, part, networkElementData, network, partNetwork);
+				}
+			}
+
+			for(INetworkAnalyzer analyzer : Analyzers.analyzers) {
+				analyzer.visitNetworkElement(networkElement, networkElementData, network, partNetwork);
 			}
 
 			networkElements.add(networkElementData);
