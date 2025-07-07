@@ -17,8 +17,9 @@ public class Tunnels implements INetworkAnalyzer {
 	public void visitNetworkPart(IPartNetworkElement partNetworkElement, IPartType part, NetworkElementData gatheredData, INetwork network, IPartNetwork partNetwork) {
 
 		if(part instanceof PartTypeInterfacePositionedAddonFiltering && partNetworkElement.getPartState() instanceof PartTypeInterfacePositionedAddonFiltering.State filteringState) {
-			int channel = filteringState.getChannel();
-			gatheredData.partData.activeAspectProperties.put("gui.integratedcrafting.partsettings.channel.interface",
+			int channel = filteringState.getChannelInterface();
+
+			gatheredData.partData.activeAspectProperties.put("gui.integratedtunnels.partsettings.channel.interface",
 				new ValueData(channel).setIsDefaultValue(channel == 0));
 		}
 	}

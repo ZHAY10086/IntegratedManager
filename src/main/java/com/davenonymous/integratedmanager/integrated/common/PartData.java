@@ -23,6 +23,7 @@ public class PartData {
 	public String level;
 	public ResourceLocation activeAspect = UnknownThings.Aspect;
 	public Map<String, ValueData> activeAspectProperties = new HashMap<>();
+	public String partClassName = "UnknownPartClass";
 
 	public PartData() {
 	}
@@ -31,6 +32,9 @@ public class PartData {
 		this.uniqueName = buf.readResourceLocation();
 		this.writer = buf.readBoolean();
 		this.reader = buf.readBoolean();
+		if (buf.readBoolean()) {
+			this.partClassName = buf.readUtf(256);
+		}
 		if (buf.readBoolean()) {
 			this.targetPos = buf.readBlockPos();
 		}
@@ -41,7 +45,7 @@ public class PartData {
 			this.targetStack = ItemStack.STREAM_CODEC.decode(buf);
 		}
 		if (buf.readBoolean()) {
-			this.level = buf.readUtf(256); // Read level name, if present
+			this.level = buf.readUtf(256);
 		}
 		this.activeAspect = buf.readResourceLocation();
 
@@ -52,6 +56,12 @@ public class PartData {
 		buf.writeResourceLocation(uniqueName);
 		buf.writeBoolean(writer);
 		buf.writeBoolean(reader);
+		if (partClassName != null && !partClassName.isEmpty()) {
+			buf.writeBoolean(true);
+			buf.writeUtf(partClassName, 256); // Write part class name, if present
+		} else {
+			buf.writeBoolean(false);
+		}
 		if (targetPos != null) {
 			buf.writeBoolean(true);
 			buf.writeBlockPos(targetPos);

@@ -1,16 +1,12 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
-import com.davenonymous.integratedmanager.gui.WidgetFactories;
 import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.PartData;
 import com.davenonymous.integratedmanager.lib.gui.event.MouseExitEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.MouseScrollEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
-import com.davenonymous.integratedmanager.lib.gui.tooltip.LabeledLineSeparatorTooltipComponent;
-import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
-import com.davenonymous.integratedmanager.lib.gui.tooltip.TableTooltipComponent;
-import com.davenonymous.integratedmanager.lib.gui.tooltip.WrappedStringTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.*;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetItemStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.language.I18n;
@@ -20,7 +16,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -85,17 +80,18 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 
 	private void updateTooltipsInternal() {
 		partWidget.setTooltipElements(
-			StringTooltipComponent.white(partStack.getHoverName().getString())
+			new LeftRightAlignedTooltipComponent(partWidget,
+				StringTooltipComponent.white(partStack.getHoverName().getString()),
+				StringTooltipComponent.orange("#" + getValue().partId))
 		);
 		updateTooltips();
-
 
 		var data = getValue();
 		if(Minecraft.getInstance().options.advancedItemTooltips) {
 			TableTooltipComponent table = new TableTooltipComponent();
 			table.addRow(
-				StringTooltipComponent.cyan(I18n.get("gui.integrateddynamics.diagnostics.table.part")),
-				WrappedStringTooltipComponent.gray(String.valueOf(data.partId))
+				StringTooltipComponent.cyan(I18n.get("integratedmanager.message.class_name") + ":"),
+				WrappedStringTooltipComponent.gray(part.partClassName)
 			);
 			table.addRow(
 				StringTooltipComponent.cyan(I18n.get("gui.integrateddynamics.diagnostics.table.position")),
