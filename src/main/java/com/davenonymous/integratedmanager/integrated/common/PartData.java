@@ -2,6 +2,7 @@ package com.davenonymous.integratedmanager.integrated.common;
 
 import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.networking.NetworkHelper;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,8 +25,13 @@ public class PartData {
 	public ResourceLocation activeAspect = UnknownThings.Aspect;
 	public Map<String, ValueData> activeAspectProperties = new HashMap<>();
 	public String partClassName = "UnknownPartClass";
+	public String translationKey = "";
 
 	public PartData() {
+	}
+
+	public String getBestName() {
+		return I18n.exists(this.translationKey) ? I18n.get(this.translationKey) : this.targetStack.getHoverName().getString();
 	}
 
 	public PartData(RegistryFriendlyByteBuf buf) {
@@ -47,6 +53,10 @@ public class PartData {
 		if (buf.readBoolean()) {
 			this.level = buf.readUtf(256);
 		}
+		if (buf.readBoolean()) {
+			this.translationKey = buf.readUtf(256);
+		}
+
 		this.activeAspect = buf.readResourceLocation();
 
 		this.activeAspectProperties = NetworkHelper.readMap(buf, HashMap::new, FriendlyByteBuf::readUtf, ValueData.STREAM_CODEC);
@@ -86,6 +96,14 @@ public class PartData {
 		} else {
 			buf.writeBoolean(false);
 		}
+
+		if (translationKey != null && !translationKey.isEmpty()) {
+			buf.writeBoolean(true);
+			buf.writeUtf(translationKey, 256); // Write translation key, if present
+		} else {
+			buf.writeBoolean(false);
+		}
+
 		buf.writeResourceLocation(activeAspect);
 		NetworkHelper.writeMap(buf, activeAspectProperties, FriendlyByteBuf::writeUtf, ValueData.STREAM_CODEC);
 	}

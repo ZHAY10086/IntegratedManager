@@ -81,9 +81,14 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 	private void updateTooltipsInternal() {
 		partWidget.setTooltipElements(
 			new LeftRightAlignedTooltipComponent(partWidget,
-				StringTooltipComponent.white(partStack.getHoverName().getString()),
+				StringTooltipComponent.white(getValue().partData.getBestName()),
 				StringTooltipComponent.orange("#" + getValue().partId))
 		);
+
+		if(I18n.exists(part.translationKey + ".info")) {
+			partWidget.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(part.translationKey + ".info")));
+		}
+
 		updateTooltips();
 
 		var data = getValue();

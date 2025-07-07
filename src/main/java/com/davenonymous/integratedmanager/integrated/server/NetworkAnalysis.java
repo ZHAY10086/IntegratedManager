@@ -186,6 +186,7 @@ public class NetworkAnalysis {
 				IPartType<? extends IPartType<?, ? extends IPartState<?>>, ? extends IPartState<?>> part = partNetworkElement.getPart();
 				partData.uniqueName = part.getUniqueName();
 				partData.partClassName = part.getClass().getSimpleName();
+				partData.translationKey = part.getTranslationKey();
 				PartTarget partTarget = partNetworkElement.getTarget();
 
 				DimPos targetPos = partTarget.getTarget().getPos();
