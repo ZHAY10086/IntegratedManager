@@ -218,6 +218,18 @@ public class VariableData {
 		return variableData;
 	}
 
+	public boolean isUnused() {
+		return proxyId == -1 && hasNoReferences() && isNotBeingReferenced();
+	}
+
+	public boolean isNotBeingReferenced() {
+		return NetworkData.cache().variableDataById.values().stream().noneMatch(variableData -> variableData.referencedVariableIds.contains(this.id));
+	}
+
+	public boolean hasNoReferences() {
+		return referencedVariableIds.isEmpty() && referencedPartIds.isEmpty();
+	}
+
 	public static final StreamCodec<RegistryFriendlyByteBuf, VariableData> STREAM_CODEC =
 		StreamCodec.ofMember(VariableData::writeToBuffer, VariableData::new);
 }

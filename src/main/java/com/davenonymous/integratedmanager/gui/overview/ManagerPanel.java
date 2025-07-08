@@ -6,6 +6,7 @@ import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.PartData;
 import com.davenonymous.integratedmanager.integrated.common.TileData;
+import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import com.davenonymous.integratedmanager.lib.gui.ColorHelper;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
@@ -106,8 +107,12 @@ public class ManagerPanel extends WidgetPanningPanel {
 			return null;
 		}
 
-		if(!ClientGraphConfig.showVariableStores && tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
-			return null;
+		if(tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
+			if(data.variables.stream().noneMatch(VariableData::isUnused)) {
+				// This tile entity is a variable store, but it has no variables that are not referenced by other parts or tiles.
+				// We do not want to show this tile entity in the graph, as it is not useful.
+				return null;
+			}
 		}
 
 		var blockState = Minecraft.getInstance().level.getBlockState(data.position);
@@ -228,10 +233,12 @@ public class ManagerPanel extends WidgetPanningPanel {
 							edge.setStyle(LineStyle.ARROW);
 							edge.setColorSource(ColorHelper.COLOR_ORANGE);
 
-							if(elementWidget instanceof NetworkTileWidget networkTileWidget) {
-								if(networkTileWidget.getValue().tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
+							if(elementWidget instanceof NetworkTileWidget networkTileWidget && networkTileWidget.getValue().tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
+								if(variable.hasNoReferences() && variable.isNotBeingReferenced()) {
 									edge.setStyle(LineStyle.AA_THIN);
 									edge.setColorSource(ColorHelper.COLOR_DISABLED.getRGB());
+								} else {
+									continue;
 								}
 							}
 							nodeGraph.addEdge(edge);

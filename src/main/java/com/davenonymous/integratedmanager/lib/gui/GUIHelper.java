@@ -121,10 +121,9 @@ public class GUIHelper {
 		return new Vector2f(angle, length);
 	}
 
-	public static void drawArrowLine(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, float lineWidth, int color) {
-		Vector2f dataVector = drawFatLine(guiGraphics, x1, y1, x2, y2, lineWidth, color);
-		float angle = dataVector.x;
-		float length = dataVector.y;
+	public static void drawArrowHead(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, int color) {
+		float angle = (float) Math.atan2(y2 - y1, x2 - x1);
+		float length = (float) Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 
 		float midX = (x1 + x2) / 2f;
 		float midY = (y1 + y2) / 2f;
@@ -139,7 +138,6 @@ public class GUIHelper {
 		guiGraphics.pose().translate(midX-6, midY-6, 0);
 		guiGraphics.pose().rotateAround(Axis.ZP.rotationDegrees((float)Math.toDegrees(angle)), 6f, 6f, 0);
 
-
 		guiGraphics.fill(2, 2, 10, 10, 0xFFFFFFFF); // Draw a rectangle to cover the center of the arrow head
 
 		setShaderColor(color);
@@ -150,7 +148,11 @@ public class GUIHelper {
 		RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f); // Reset color to white
 
 		RenderSystem.disableBlend();
+	}
 
+	public static void drawArrowLine(GuiGraphics guiGraphics, float x1, float y1, float x2, float y2, float lineWidth, int color) {
+		drawFatLine(guiGraphics, x1, y1, x2, y2, lineWidth, color);
+		drawArrowHead(guiGraphics, x1, y1, x2, y2, color);
 	}
 
 	public static int longestWrappedLine(Font font, FormattedText text, int lineWidth) {
