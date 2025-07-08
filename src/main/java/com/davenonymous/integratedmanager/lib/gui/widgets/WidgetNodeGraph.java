@@ -77,9 +77,6 @@ public class WidgetNodeGraph extends WidgetPanel implements IGraphProvider {
 	@Override
 	public void add(Widget widget) {
 		super.add(widget);
-		for(var existingNode : this.nodes().keySet()) {
-			this.addEdge(ConstrainedGraphEdge.createMinDistanceEdge(existingNode, widget, 64.0f));
-		}
 		nodeData.put(widget, new NodeData(widget));
 	}
 

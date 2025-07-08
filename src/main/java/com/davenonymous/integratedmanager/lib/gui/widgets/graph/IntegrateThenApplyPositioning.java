@@ -201,6 +201,32 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 		}
 	}
 
+	private void integrateMinDistance(IGraphProvider graph, float minDistance, float force) {
+		// Integrate the minimum distance constraint between nodes
+		// This is the most naive approach possible and can easily be optimized py partitioning the canvas into a grid
+		for(Widget nodeA : graph.nodes().keySet()) {
+			Vector2f positionA = new Vector2f(graph.nodes().get(nodeA).position());
+			for(Widget nodeB : graph.nodes().keySet()) {
+				if(nodeA == nodeB) {
+					continue; // Skip self-comparison
+				}
+				Vector2f direction = new Vector2f(graph.nodes().get(nodeB).position()).sub(positionA);
+				float distance = direction.length();
+				if(distance <= 0.0001f) {
+					// If the distance is zero, skip this pair to avoid division by zero
+					continue;
+				}
+				if(distance < minDistance) {
+					direction.normalize().mul((minDistance - distance) * -force);
+					Vector2f velocityA = new Vector2f(graph.nodes().get(nodeA).velocity()).add(direction);
+					Vector2f velocityB = new Vector2f(graph.nodes().get(nodeB).velocity()).sub(direction);
+					graph.setNodeVelocity(nodeA, velocityA);
+					graph.setNodeVelocity(nodeB, velocityB);
+				}
+			}
+		}
+	}
+
 	private void applyForces(IGraphProvider graph) {
 		// Apply the calculated forces to the nodes
 		for(Widget node : graph.nodes().keySet()) {
@@ -224,6 +250,7 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 	public void updatePositions(IGraphProvider graph) {
 		integrateEdges(graph);
 		integrateCanvasBorders(graph);
+		integrateMinDistance(graph, 64.0f, 0.0005f);
 		//avoidNodesOnEdges(graph);
 		//avoidCrossingEdges(graph);
 		applyForces(graph);
