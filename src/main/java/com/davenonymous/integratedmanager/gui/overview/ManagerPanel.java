@@ -31,7 +31,12 @@ public class ManagerPanel extends WidgetPanningPanel {
 	Map<Integer, NetworkPartWidget> partWidgets;
 	Map<Integer, VariableFacadeWidget> variableWidgets;
 	Map<Integer, NetworkTileWidget> proxyWidgets;
-	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByChannelId;
+	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsBySupplyChannelId;
+
+	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByItemChannelId;
+	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByFluidChannelId;
+	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByEnergyChannelId;
+
 	boolean fullDataReceived = false;
 
 	public Widget addPartWidget(NetworkElementData data, int initialX, int initialY) {
@@ -47,7 +52,30 @@ public class ManagerPanel extends WidgetPanningPanel {
 
 
 		partWidgets.put(data.partId, partWidget);
-		elementsByChannelId.computeIfAbsent(data.channelId, k -> new ArrayList<>()).add(partWidget);
+		elementsBySupplyChannelId.computeIfAbsent(data.channelId, k -> new ArrayList<>()).add(partWidget);
+
+		if(part.activeAspectProperties.containsKey("gui.integratedtunnels.partsettings.channel.interface")) {
+			int interfaceChannel = Integer.parseInt(part.activeAspectProperties.get("gui.integratedtunnels.partsettings.channel.interface").stringValue);
+			if(part.onItemChannel) {
+				elementsByItemChannelId.computeIfAbsent(interfaceChannel, k -> new ArrayList<>()).add(partWidget);
+			} else if(part.onFluidChannel) {
+				elementsByFluidChannelId.computeIfAbsent(interfaceChannel, k -> new ArrayList<>()).add(partWidget);
+			} else if(part.onEnergyChannel) {
+				elementsByEnergyChannelId.computeIfAbsent(interfaceChannel, k -> new ArrayList<>()).add(partWidget);
+			}
+		}
+
+		if(part.activeAspectProperties.containsKey("aspect.aspecttypes.integrateddynamics.integer.channel")) {
+			int interfaceChannel = Integer.parseInt(part.activeAspectProperties.get("aspect.aspecttypes.integrateddynamics.integer.channel").stringValue);
+			if(part.onItemChannel) {
+				elementsByItemChannelId.computeIfAbsent(interfaceChannel, k -> new ArrayList<>()).add(partWidget);
+			} else if(part.onFluidChannel) {
+				elementsByFluidChannelId.computeIfAbsent(interfaceChannel, k -> new ArrayList<>()).add(partWidget);
+			} else if(part.onEnergyChannel) {
+				elementsByEnergyChannelId.computeIfAbsent(interfaceChannel, k -> new ArrayList<>()).add(partWidget);
+			}
+		}
+
 
 		if(!part.targetStack.isEmpty()) {
 			PartTargetWidget partTargetWidget = new PartTargetWidget(part);
@@ -103,7 +131,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 		nodeGraph.add(tileWidget);
 
 		tileWidgets.put(data.position, tileWidget);
-		elementsByChannelId.computeIfAbsent(data.channelId, k -> new ArrayList<>()).add(tileWidget);
+		elementsBySupplyChannelId.computeIfAbsent(data.channelId, k -> new ArrayList<>()).add(tileWidget);
 
 		if(tileData.proxyId >= 0) {
 			proxyWidgets.put(tileData.proxyId, tileWidget);
@@ -118,7 +146,11 @@ public class ManagerPanel extends WidgetPanningPanel {
 		this.variableWidgets = new HashMap<>();
 		this.tileWidgets = new HashMap<>();
 		this.proxyWidgets = new HashMap<>();
-		this.elementsByChannelId = new HashMap<>();
+		this.elementsBySupplyChannelId = new HashMap<>();
+		this.elementsByItemChannelId = new HashMap<>();
+		this.elementsByFluidChannelId = new HashMap<>();
+		this.elementsByEnergyChannelId = new HashMap<>();
+
 		this.nodeGraph = new WidgetNodeGraph(GraphAlgorithms.INTEGRATE_THEN_APPLY.get());
 		this.nodeGraph.setSize(1024, 1024);
 
@@ -259,8 +291,8 @@ public class ManagerPanel extends WidgetPanningPanel {
 				}
 
 				if(ClientGraphConfig.showCables) {
-					for(int channelId : elementsByChannelId.keySet()) {
-						List<NodeWidget<NetworkElementData>> channelElements = elementsByChannelId.get(channelId);
+					for(int channelId : elementsBySupplyChannelId.keySet()) {
+						List<NodeWidget<NetworkElementData>> channelElements = elementsBySupplyChannelId.get(channelId);
 						if(channelElements.size() < 2) {
 							continue; // No edges to draw
 						}

@@ -30,6 +30,10 @@ public class PartData {
 	public String translationKey = "";
 	public List<String> errors = new ArrayList<>();
 
+	public boolean onEnergyChannel = false;
+	public boolean onItemChannel = false;
+	public boolean onFluidChannel = false;
+
 	public PartData() {
 	}
 
@@ -41,6 +45,10 @@ public class PartData {
 		this.uniqueName = buf.readResourceLocation();
 		this.writer = buf.readBoolean();
 		this.reader = buf.readBoolean();
+		this.onEnergyChannel = buf.readBoolean();
+		this.onItemChannel = buf.readBoolean();
+		this.onFluidChannel = buf.readBoolean();
+
 		if (buf.readBoolean()) {
 			this.partClassName = buf.readUtf(256);
 		}
@@ -70,6 +78,10 @@ public class PartData {
 		buf.writeResourceLocation(uniqueName);
 		buf.writeBoolean(writer);
 		buf.writeBoolean(reader);
+		buf.writeBoolean(onEnergyChannel);
+		buf.writeBoolean(onItemChannel);
+		buf.writeBoolean(onFluidChannel);
+
 		if (partClassName != null && !partClassName.isEmpty()) {
 			buf.writeBoolean(true);
 			buf.writeUtf(partClassName, 256); // Write part class name, if present
