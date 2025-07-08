@@ -1,5 +1,6 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
+import com.davenonymous.integratedmanager.IntegratedManager;
 import com.davenonymous.integratedmanager.gui.AllElementsReceivedEvent;
 import com.davenonymous.integratedmanager.gui.NodeUpdateEvent;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
@@ -104,6 +105,12 @@ public class ManagerPanel extends WidgetPanningPanel {
 		}
 
 		if(tileWidgets.containsKey(data.position)) {
+			return null;
+		}
+
+		if(!ClientGraphConfig.showProxies && tileData.blockEntityClass.equals(("BlockEntityProxy"))) {
+			// This tile entity is a proxy, we do not want to show it in the graph.
+			// Proxies are only used to connect variables to other parts or tiles.
 			return null;
 		}
 
@@ -291,6 +298,22 @@ public class ManagerPanel extends WidgetPanningPanel {
 								edge.setStyle(LineStyle.ARROW);
 								edge.setColorSource(ColorHelper.COLOR_PURPLE);
 								nodeGraph.addEdge(edge);
+							} else {
+								VariableData proxiedVariable = NetworkData.cache().variableDataByProxyId.get(variable.proxyId);
+								if(proxiedVariable == null) {
+									IntegratedManager.LOGGER.warn("Proxy variable with ID {} not found in cache, this is likely a bug.", variable.proxyId);
+									continue; // Skip if the proxied variable is not found
+								}
+								VariableFacadeWidget proxyVariableWidget = variableWidgets.get(proxiedVariable.id);
+								if(proxyVariableWidget != null) {
+									var edge = ConstrainedGraphEdge.createConstrainedEdge(proxyVariableWidget, variableWidget, 32.0f);
+									edge.setShouldRender(true);
+									edge.setStyle(LineStyle.ARROW);
+									edge.setColorSource(ColorHelper.COLOR_PURPLE);
+									nodeGraph.addEdge(edge);
+								} else {
+									IntegratedManager.LOGGER.warn("Proxy variable widget for ID {} not found, this is likely a bug.", proxiedVariable.id);
+								}
 							}
 						}
 
