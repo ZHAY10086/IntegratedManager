@@ -72,12 +72,13 @@ public class GUIHelper {
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 		RenderSystem.enableBlend();
 
+		float midX = (x1 + x2) / 2f;
+		float midY = (y1 + y2) / 2f;
 
 		guiGraphics.pose().pushPose();
-		guiGraphics.pose().translate(x1, y1, 0);
-		guiGraphics.pose().rotateAround(Axis.ZP.rotationDegrees((float)Math.toDegrees(angle)), 0, lineWidth/2, 0);
-		guiGraphics.pose().scale(1.0f, lineWidth, 1.0f);
-		guiGraphics.fill(0, 0, (int)length, 1, color);
+		guiGraphics.pose().translate(midX - (length/2.0f), midY - (lineWidth/2.0f), 0);
+		guiGraphics.pose().rotateAround(Axis.ZP.rotationDegrees((float)Math.toDegrees(angle)), length / 2.0f, lineWidth/2.0f, 0);
+		guiGraphics.fill(0, 0, (int)length, Math.round(lineWidth), color);
 
 		guiGraphics.pose().popPose();
 

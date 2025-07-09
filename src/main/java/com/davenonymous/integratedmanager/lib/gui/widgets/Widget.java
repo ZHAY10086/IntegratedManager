@@ -29,6 +29,7 @@ public class Widget {
 	ResourceLocation backgroundSprite = null;
 	boolean enabled = true;
 	boolean focused = false;
+	boolean selected = false;
 	boolean visible = true;
 	boolean hovered = false;
 	boolean shouldShowTooltip = true;
@@ -359,6 +360,14 @@ public class Widget {
 
 	public void setDisabled() {
 		this.enabled = false;
+	}
+
+	public void setSelected(boolean selected) {
+		this.selected = selected;
+	}
+
+	public boolean isSelected() {
+		return this.selected;
 	}
 
 	public void setShouldShowTooltip(boolean shouldShowTooltip) {

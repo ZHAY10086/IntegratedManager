@@ -15,11 +15,12 @@ public class NodeWidget<T> extends WidgetPanelWithValue<T> {
 
 		this.addListener(
 			MouseClickEvent.class, (event, widget) -> {
-				if(event.button == 0) { // Left click
+				if(event.button == 0 && !getGUI().isShiftDown()) { // Left click
 					getGUI().setDragging(true);
 					this.setShouldShowTooltip(false);
+					return WidgetEventResult.HANDLED;
 				}
-				return WidgetEventResult.HANDLED;
+				return WidgetEventResult.CONTINUE_PROCESSING;
 			});
 
 		this.addListener(

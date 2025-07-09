@@ -9,6 +9,7 @@ import com.davenonymous.integratedmanager.integrated.common.PartData;
 import com.davenonymous.integratedmanager.integrated.common.TileData;
 import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import com.davenonymous.integratedmanager.lib.gui.ColorHelper;
+import com.davenonymous.integratedmanager.lib.gui.event.MouseClickEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
@@ -38,6 +39,10 @@ public class ManagerPanel extends WidgetPanningPanel {
 	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByItemChannelId;
 	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByFluidChannelId;
 	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByEnergyChannelId;
+
+	Widget selectedWidget = null;
+	List<Widget> selectedDescendants;
+	List<Widget> selectedAncestors;
 
 	boolean fullDataReceived = false;
 
@@ -162,6 +167,8 @@ public class ManagerPanel extends WidgetPanningPanel {
 		this.elementsByItemChannelId = new HashMap<>();
 		this.elementsByFluidChannelId = new HashMap<>();
 		this.elementsByEnergyChannelId = new HashMap<>();
+		this.selectedDescendants = new ArrayList<>();
+		this.selectedAncestors = new ArrayList<>();
 
 		this.nodeGraph = new WidgetNodeGraph(GraphAlgorithms.INTEGRATE_THEN_APPLY.get());
 		this.nodeGraph.setSize(1024, 1024);
@@ -217,6 +224,30 @@ public class ManagerPanel extends WidgetPanningPanel {
 						elementWidget = addTileWidget(element, (int) bestPos.x, (int) bestPos.y);
 					}
 
+					if(elementWidget != null) {
+						elementWidget.addListener(MouseClickEvent.class, (event1, widget1) -> {
+							if(event1.button != 0 || !getGUI().isShiftDown()) { // Left click + shift (scancode=340)
+								return WidgetEventResult.CONTINUE_PROCESSING;
+							}
+
+							if(selectedWidget != null && selectedWidget.equals(widget1)) {
+								deselectAll();
+								return WidgetEventResult.HANDLED;
+							}
+
+							deselectAll();
+							selectedWidget = widget1;
+							widget1.setSelected(true);
+
+							selectedDescendants = nodeGraph.getDescendants(selectedWidget);
+							selectedAncestors = nodeGraph.getAncestors(selectedWidget);
+							selectedDescendants.forEach(descendent -> descendent.setSelected(true));
+							selectedAncestors.forEach(ancestor -> ancestor.setSelected(true));
+
+							return WidgetEventResult.HANDLED;
+						});
+					}
+
  					for(var variable : element.variables) {
 						if(variable.id == -1) {
 							continue; // Skip variables that are not used
@@ -229,6 +260,27 @@ public class ManagerPanel extends WidgetPanningPanel {
 
 						VariableFacadeWidget variableWidget = new VariableFacadeWidget(variable);
 						variableWidget.setPosition(spiral.next());
+						variableWidget.addListener(MouseClickEvent.class, (event1, widget1) -> {
+							if(event1.button != 0 || !getGUI().isShiftDown()) { // Left click + shift (scancode=340)
+								return WidgetEventResult.CONTINUE_PROCESSING;
+							}
+
+							if(selectedWidget != null && selectedWidget.equals(variableWidget)) {
+								deselectAll();
+								return WidgetEventResult.HANDLED;
+							}
+
+							deselectAll();
+							selectedWidget = variableWidget;
+							variableWidget.setSelected(true);
+
+							selectedDescendants = nodeGraph.getDescendants(selectedWidget);
+							selectedAncestors = nodeGraph.getAncestors(selectedWidget);
+							selectedDescendants.forEach(descendent -> descendent.setSelected(true));
+							selectedAncestors.forEach(ancestor -> ancestor.setSelected(true));
+
+							return WidgetEventResult.HANDLED;
+						});
 
 
 						nodeGraph.add(variableWidget);
@@ -353,6 +405,25 @@ public class ManagerPanel extends WidgetPanningPanel {
 		);
 
 		this.add(nodeGraph);
+	}
+
+	public ManagerPanel deselectAll() {
+		if(selectedWidget != null) {
+			selectedWidget.setSelected(false);
+			selectedWidget = null;
+		}
+
+		for(Widget descendent : selectedDescendants) {
+			descendent.setSelected(false);
+		}
+		selectedDescendants.clear();
+
+		for(Widget ancestor : selectedAncestors) {
+			ancestor.setSelected(false);
+		}
+		selectedAncestors.clear();
+
+		return this;
 	}
 
 	public ManagerPanel freezeActivity(boolean state) {
