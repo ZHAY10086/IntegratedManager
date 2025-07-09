@@ -61,4 +61,5 @@ public class Icons {
 
 	public static ResourceLocation guiIDCable = IntegratedManager.resource("textures/gui/line-id-cable.png");
 	public static ResourceLocation guiIDVariableBackground = IntegratedManager.resource("variablesliced");
+	public static ResourceLocation guiIDSelectedBorder = IntegratedManager.resource("id-selection-border");
 }

@@ -98,6 +98,28 @@ public class ManagerPanel extends WidgetPanningPanel {
 			edge.setStyle(LineStyle.ARROW);
 			edge.setColorSource(ColorHelper.COLOR_ERRORED.getRGB());
 			nodeGraph.addEdge(edge);
+
+			partTargetWidget.addListener(MouseClickEvent.class, (event1, widget1) -> {
+				if(event1.button != 0 || getGUI().isShiftDown()) { // Left click + shift (scancode=340)
+					return WidgetEventResult.CONTINUE_PROCESSING;
+				}
+
+				if(selectedWidget != null && selectedWidget.equals(widget1)) {
+					deselectAll();
+					return WidgetEventResult.HANDLED;
+				}
+
+				deselectAll();
+				selectedWidget = widget1;
+				widget1.setSelected(true);
+
+				selectedDescendants = nodeGraph.getDescendants(selectedWidget);
+				selectedAncestors = nodeGraph.getAncestors(selectedWidget);
+				selectedDescendants.forEach(descendent -> descendent.setSelected(true));
+				selectedAncestors.forEach(ancestor -> ancestor.setSelected(true));
+
+				return WidgetEventResult.HANDLED;
+			});
 		}
 
 		return partWidget;
@@ -226,7 +248,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 
 					if(elementWidget != null) {
 						elementWidget.addListener(MouseClickEvent.class, (event1, widget1) -> {
-							if(event1.button != 0 || !getGUI().isShiftDown()) { // Left click + shift (scancode=340)
+							if(event1.button != 0 || getGUI().isShiftDown()) { // Left click + shift (scancode=340)
 								return WidgetEventResult.CONTINUE_PROCESSING;
 							}
 
@@ -261,7 +283,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 						VariableFacadeWidget variableWidget = new VariableFacadeWidget(variable);
 						variableWidget.setPosition(spiral.next());
 						variableWidget.addListener(MouseClickEvent.class, (event1, widget1) -> {
-							if(event1.button != 0 || !getGUI().isShiftDown()) { // Left click + shift (scancode=340)
+							if(event1.button != 0 || getGUI().isShiftDown()) { // Left click + shift (scancode=340)
 								return WidgetEventResult.CONTINUE_PROCESSING;
 							}
 

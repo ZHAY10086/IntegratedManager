@@ -1,8 +1,11 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
+import com.davenonymous.integratedmanager.lib.gui.Icons;
 import com.davenonymous.integratedmanager.lib.gui.event.*;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetNodeGraph;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPanelWithValue;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
 import org.joml.Vector2f;
 
 public class NodeWidget<T> extends WidgetPanelWithValue<T> {
@@ -15,7 +18,7 @@ public class NodeWidget<T> extends WidgetPanelWithValue<T> {
 
 		this.addListener(
 			MouseClickEvent.class, (event, widget) -> {
-				if(event.button == 0 && !getGUI().isShiftDown()) { // Left click
+				if(event.button == 0 && getGUI().isShiftDown()) { // Left click
 					getGUI().setDragging(true);
 					this.setShouldShowTooltip(false);
 					return WidgetEventResult.HANDLED;
@@ -72,5 +75,24 @@ public class NodeWidget<T> extends WidgetPanelWithValue<T> {
 
 				return WidgetEventResult.HANDLED;
 			});
+	}
+
+	@Override
+	public void draw(GuiGraphics guiGraphics, Screen screen) {
+		ManagerPanel managerPanel = getParentByType(ManagerPanel.class);
+		if(managerPanel != null && managerPanel.selectedWidget != null && managerPanel.selectedWidget.equals(this)) {
+			guiGraphics.fill(-5, -5, this.width + 5, this.height + 5, 0x30FFFFFF); // Draw a semi-transparent background
+		}
+		super.draw(guiGraphics, screen);
+
+		if(managerPanel != null && managerPanel.selectedWidget != null && managerPanel.selectedWidget.equals(this)) {
+			guiGraphics.pose().pushPose();
+			guiGraphics.pose().translate(0, 0, 20); // Offset for the border
+			guiGraphics.blitSprite(Icons.guiIDSelectedBorder,
+				-5, -5,
+				this.width + 10, this.height + 10
+			);
+			guiGraphics.pose().popPose();
+		}
 	}
 }

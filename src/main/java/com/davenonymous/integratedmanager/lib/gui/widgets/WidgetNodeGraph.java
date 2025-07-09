@@ -103,7 +103,7 @@ public class WidgetNodeGraph extends AbstractGraphProvider {
 
 			boolean highlight = source.isSelected() && target.isSelected();
 			if(highlight && edge.getStyle() != LineStyle.INTEGRATED_DYNAMICS_CABLE) {
-				GUIHelper.drawFatLine(guiGraphics, sourceX, sourceY, targetX, targetY, 6, edge.colorSource());
+				GUIHelper.drawFatLine(guiGraphics, sourceX, sourceY, targetX, targetY, 5, edge.colorSource());
 			}
 
 			if(edge.getStyle() != null) {
