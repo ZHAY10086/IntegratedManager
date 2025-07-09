@@ -3,6 +3,7 @@ package com.davenonymous.integratedmanager.gui.overview;
 import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.PartData;
+import com.davenonymous.integratedmanager.lib.gui.Icons;
 import com.davenonymous.integratedmanager.lib.gui.event.MouseExitEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.MouseScrollEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
@@ -136,6 +137,17 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 			} else {
 				partWidget.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(translationKey)));
 			}
+		}
+
+		if(!data.itemBoxItems.isEmpty()) {
+			IngredientBoxTooltipComponent ingredientBox = new IngredientBoxTooltipComponent(
+				data.itemBoxItems.stream().map(ItemStack::getItem).toList()
+			);
+			BackgroundTooltipComponent itemBox = new BackgroundTooltipComponent(
+				ingredientBox,
+				Icons.guiIDVariableBackground
+			);
+			partWidget.addTooltipElement(new CenteredTooltipComponent(partWidget, itemBox));
 		}
 
 		if(part.errors.isEmpty() && !part.activeAspectProperties.isEmpty()) {

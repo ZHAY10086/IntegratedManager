@@ -10,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import org.joml.Vector2i;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class NetworkElementData {
 	public PartData partData = null;
 	public TileData tileData = null;
 	public ValueData valueData = null;
+	public List<ItemStack> itemBoxItems = new ArrayList<>();
 
 	public BlockPos position = BlockPos.ZERO;
 	public Direction side = null;
@@ -44,6 +46,8 @@ public class NetworkElementData {
 		this.priority = buf.readVarInt();
 		this.variables = NetworkHelper.readCollection(buf, ArrayList::new, VariableData.STREAM_CODEC);
 		this.aspects = NetworkHelper.readCollection(buf, ArrayList::new, AspectData.STREAM_CODEC);
+		this.itemBoxItems = NetworkHelper.readCollection(buf, ArrayList::new, ItemStack.STREAM_CODEC);
+
 		if(buf.readBoolean()) {
 			this.activeAspect = AspectData.STREAM_CODEC.decode(buf);
 		} else {
@@ -75,6 +79,7 @@ public class NetworkElementData {
 		buf.writeVarInt(priority);
 		NetworkHelper.writeCollection(buf, variables, VariableData.STREAM_CODEC);
 		NetworkHelper.writeCollection(buf, aspects, AspectData.STREAM_CODEC);
+		NetworkHelper.writeCollection(buf, itemBoxItems, ItemStack.STREAM_CODEC);
 
 		if (activeAspect != null) {
 			buf.writeBoolean(true);

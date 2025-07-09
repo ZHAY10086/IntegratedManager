@@ -11,6 +11,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.cyclops.commoncapabilities.api.capability.recipehandler.IRecipeDefinition;
 import org.cyclops.commoncapabilities.api.ingredient.IngredientComponent;
 import org.cyclops.integrateddynamics.Capabilities;
@@ -165,6 +166,25 @@ public class ValueTypeTranslator {
 		} else if(valueType.correspondsTo(valueObjectTypeIngredients)) {
 			ValueObjectTypeIngredients.ValueIngredients ingredientsValue = value.cast(valueObjectTypeIngredients);
 			valueData.stringValue = ingredientsValue.getRawValue().toString();
+			if(ingredientsValue.getRawValue().isPresent()) {
+				var mixedIngredients = ingredientsValue.getRawValue().get();
+				for(var ingredientComponent : mixedIngredients.getComponents()) {
+					for(var ingredient : mixedIngredients.getInstances(ingredientComponent)) {
+						if(ingredient instanceof ItemStack ingredientStack) {
+							valueData.valueTranslationKey = ingredientStack.getDescriptionId();
+							valueData.addItemStackValue(ingredientStack.copy());
+						} else if(ingredient instanceof FluidStack fluidStack) {
+							valueData.addFluidStackValue(fluidStack.copy());
+						} else if(ingredientComponent.getName().toString().equals("minecraft:energy") && ingredient instanceof Long energyAmount) {
+							valueData.forgeEnergyValue += energyAmount;
+						} else {
+							IntegratedManager.LOGGER.warn("Unsupported ingredient component: {} type: {}", I18n.get(
+								ingredientComponent.getTranslationKey()),
+								ingredient.getClass().getName());
+						}
+					}
+				}
+			}
 
 		} else if(valueType.correspondsTo(valueObjectTypeRecipe)) {
 			ValueObjectTypeRecipe.ValueRecipe recipeValue = value.cast(valueObjectTypeRecipe);
@@ -172,19 +192,27 @@ public class ValueTypeTranslator {
 				valueData.stringValue = "No recipe";
 				return valueData; // No recipe, nothing to do
 			}
+
 			IRecipeDefinition recipe = recipeValue.getRawValue().get();
 			if(!recipe.getOutput().isEmpty() && !recipe.getOutput().getComponents().isEmpty()) {
 				var components = recipe.getOutput().getComponents();
-				var optIngredient = components.stream().findFirst();
-				if(optIngredient.isPresent()) {
-					IngredientComponent<?, ?> ingredient = optIngredient.get();
-					if(recipe.getOutput().getFirstNonEmpty(ingredient) instanceof ItemStack outputStack) {
-						valueData.valueTranslationKey = outputStack.getDescriptionId();
-					}
+				for(var ingredientComponent : components) {
+					for(var ingredient : recipe.getOutput().getInstances(ingredientComponent)) {
+						if(ingredient instanceof ItemStack ingredientStack) {
+							valueData.valueTranslationKey = ingredientStack.getDescriptionId();
+							valueData.addItemStackValue(ingredientStack.copy());
+						} else if(ingredient instanceof FluidStack fluidStack) {
+							valueData.addFluidStackValue(fluidStack.copy());
+						} else if(ingredientComponent.getName().toString().equals("minecraft:energy") && ingredient instanceof Long energyAmount) {
+							valueData.forgeEnergyValue += energyAmount;
+						} else {
+							IntegratedManager.LOGGER.warn("Unsupported recipe component: {} type: {}",
+								I18n.get(ingredientComponent.getTranslationKey()),
+								ingredient.getClass().getName()
+							);
+						}
 
-					valueData.stringValue = ingredient.toString();
-				} else {
-					valueData.stringValue = "Recipe with no output";
+					}
 				}
 
 			} else {

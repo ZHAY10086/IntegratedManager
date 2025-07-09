@@ -46,6 +46,10 @@
 	"integratedmanager.configuration.clientgraph.show_cables": "Show Cables",
 	"integratedmanager.configuration.clientgraph.show_cables.tooltip": "This will connect the nodes with cables in the graph.\nThese connections are not representative of the actual cables in the world, but rather a visual aid to see how nodes are connected.",
 
+	"integratedmanager.configuration.clientgraph.show_recipe_variables": "Show Recipe Variables",
+	"integratedmanager.configuration.clientgraph.show_recipe_variables.tooltip": "Normally recipe variables are simply shown in their corresponding crafting node.\nThis will show them in the graph as well.",
+
+
 
 	"--last-line-comma-protection--": ","
 }

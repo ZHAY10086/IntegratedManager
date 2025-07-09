@@ -1,6 +1,5 @@
 package com.davenonymous.integratedmanager.integrated;
 
-import com.davenonymous.integratedmanager.IntegratedManager;
 import org.cyclops.cyclopscore.init.RegistryManager;
 import org.cyclops.integrateddynamics.api.IntegratedDynamicsAPI;
 import org.cyclops.integrateddynamics.api.evaluate.operator.IOperatorRegistry;

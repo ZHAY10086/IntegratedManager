@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import org.joml.Vector2f;
 
@@ -25,6 +26,7 @@ public class Widget {
 	public float scale = 1.0F;
 	public float zLevel = 0.0F;
 
+	ResourceLocation backgroundSprite = null;
 	boolean enabled = true;
 	boolean focused = false;
 	boolean visible = true;
@@ -105,6 +107,11 @@ public class Widget {
 	@Override
 	public int hashCode() {
 		return id;
+	}
+
+	public Widget setBackgroundSprite(ResourceLocation backgroundSprite) {
+		this.backgroundSprite = backgroundSprite;
+		return this;
 	}
 
 	public Widget setPosition(Vector2f position) {
@@ -414,6 +421,10 @@ public class Widget {
 		pGuiGraphics.pose().pushPose();
 		pGuiGraphics.pose().translate(this.x, this.y, this.zLevel);
 		pGuiGraphics.pose().scale(this.scale, this.scale, this.scale);
+		if(this.backgroundSprite != null) {
+			pGuiGraphics.blitSprite(this.backgroundSprite, 0, 0, this.width, this.height);
+		}
+
 		this.draw(pGuiGraphics, screen);
 
 		if(renderDebugOutlines) {

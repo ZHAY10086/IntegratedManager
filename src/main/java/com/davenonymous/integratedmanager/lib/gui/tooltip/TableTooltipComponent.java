@@ -234,7 +234,20 @@ public class TableTooltipComponent implements TooltipComponent, ClientTooltipCom
 					continue;
 				}
 
-				clientComponent.renderImage(font, xPos, yPos, guiGraphics);
+				int xOffset = 0;
+				int yOffset = 0;
+				if(cell.horizontal == BoxAlignment.CENTER) {
+					xOffset = (colWidths.getOrDefault(col, 0) - clientComponent.getWidth(font)) / 2;
+				} else if(cell.horizontal == BoxAlignment.END) {
+					xOffset = colWidths.getOrDefault(col, 0) - clientComponent.getWidth(font);
+				}
+				if(cell.vertical == BoxAlignment.CENTER) {
+					yOffset = (rowHeights.getOrDefault(row, 0) - clientComponent.getHeight()) / 2;
+				} else if(cell.vertical == BoxAlignment.END) {
+					yOffset = rowHeights.getOrDefault(row, 0) - clientComponent.getHeight();
+				}
+
+				clientComponent.renderImage(font, xPos + xOffset, yPos + yOffset, guiGraphics);
 			}
 		}
 

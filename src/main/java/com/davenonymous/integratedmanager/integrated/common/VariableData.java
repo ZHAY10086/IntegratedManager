@@ -21,6 +21,7 @@ import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.IPartNetwork;
 import org.cyclops.integrateddynamics.api.part.aspect.property.IAspectProperties;
 import org.cyclops.integrateddynamics.api.part.aspect.property.IAspectPropertyTypeInstance;
+import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypes;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -228,6 +229,10 @@ public class VariableData {
 
 	public boolean hasNoReferences() {
 		return referencedVariableIds.isEmpty() && referencedPartIds.isEmpty();
+	}
+
+	public boolean isRecipe() {
+		return this.facadeClassName.equals("ValueTypeVariableFacade") && type.equals(ValueTypes.OBJECT_RECIPE.getUniqueName());
 	}
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, VariableData> STREAM_CODEC =

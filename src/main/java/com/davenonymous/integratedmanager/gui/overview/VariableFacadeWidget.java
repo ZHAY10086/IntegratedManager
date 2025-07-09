@@ -24,7 +24,7 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 
 		variableWidget = new WidgetItemStack(variable.variableStack.copy());
 		variableWidget.setDrawTooltip(false);
-		TooltipComponent[] tooltipComponents = WidgetFactories.Tooltips.variableHeader(variable, false);
+		TooltipComponent[] tooltipComponents = WidgetFactories.Tooltips.variableHeader(variable, variableWidget);
 		if(tooltipComponents.length > 0 && variable.id != -1 && tooltipComponents[0] instanceof ClientTooltipComponent firstRow) {
 			tooltipComponents[0] = new LeftRightAlignedTooltipComponent(variableWidget, firstRow, StringTooltipComponent.cyan("#" + variable.id));
 		}

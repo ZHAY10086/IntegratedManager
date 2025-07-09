@@ -5,6 +5,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.fluids.FluidStack;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
 import org.cyclops.integrateddynamics.core.evaluate.variable.ValueTypes;
 
@@ -20,8 +21,10 @@ public class ValueData extends TypeData {
 	public TypeData outputType = null;
 
 	public List<ItemStack> itemStackValues = new ArrayList<>();
-
+	public List<FluidStack> fluidStackValues = new ArrayList<>();
 	public List<ValueData> listValues = new ArrayList<>();
+	public long forgeEnergyValue = 0;
+
 	public TypeData listType = null;
 
 	public boolean isDefaultValue = false;
@@ -59,7 +62,9 @@ public class ValueData extends TypeData {
 
 		this.inputTypes = NetworkHelper.readCollection(buf, ArrayList::new, TypeData.STREAM_CODEC);
 		this.itemStackValues = NetworkHelper.readCollection(buf, ArrayList::new, ItemStack.STREAM_CODEC);
+		this.fluidStackValues = NetworkHelper.readCollection(buf, ArrayList::new, FluidStack.STREAM_CODEC);
 		this.listValues = NetworkHelper.readCollection(buf, ArrayList::new, ValueData.STREAM_CODEC);
+		this.forgeEnergyValue = buf.readLong();
 
 		if(buf.readBoolean()) {
 			this.listType = TypeData.STREAM_CODEC.decode(buf);
@@ -84,7 +89,9 @@ public class ValueData extends TypeData {
 		}
 		NetworkHelper.writeCollection(buf, inputTypes, TypeData.STREAM_CODEC);
 		NetworkHelper.writeCollection(buf, itemStackValues, ItemStack.STREAM_CODEC);
+		NetworkHelper.writeCollection(buf, fluidStackValues, FluidStack.STREAM_CODEC);
 		NetworkHelper.writeCollection(buf, listValues, ValueData.STREAM_CODEC);
+		buf.writeLong(forgeEnergyValue);
 
 		if (listType != null) {
 			buf.writeBoolean(true);
@@ -103,6 +110,12 @@ public class ValueData extends TypeData {
 	public void addItemStackValue(ItemStack itemStack) {
 		if (!itemStack.isEmpty()) {
 			this.itemStackValues.add(itemStack);
+		}
+	}
+
+	public void addFluidStackValue(FluidStack fluidStack) {
+		if (fluidStack != null && !fluidStack.isEmpty()) {
+			this.fluidStackValues.add(fluidStack);
 		}
 	}
 

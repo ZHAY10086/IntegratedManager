@@ -4,6 +4,7 @@ import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.ValueData;
 import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import com.davenonymous.integratedmanager.integrated.server.ValueTypeTranslator;
+import com.davenonymous.integratedmanager.setup.config.ClientGraphConfig;
 import com.davenonymous.integratedmanager.setup.integrated.INetworkAnalyzer;
 import com.davenonymous.integratedmanager.setup.integrated.IntegratedManagerSupport;
 import net.minecraft.world.item.ItemStack;
@@ -38,8 +39,18 @@ public class Crafting implements INetworkAnalyzer {
 				if(optVariableFacade.isEmpty()) {
 					continue;
 				}
-				VariableData tileVariableData = VariableData.fromFacade(optVariableFacade.get(), network, partNetwork);
-				gatheredData.variables.add(tileVariableData);
+
+				VariableData variableData = VariableData.fromFacade(optVariableFacade.get(), network, partNetwork);
+
+				if(ClientGraphConfig.showRecipeVariables || !variableData.isRecipe()) {
+					gatheredData.variables.add(variableData);
+				}
+
+				ValueData variableValue = variableData.valueData;
+				if(variableValue.itemStackValues != null && !variableValue.itemStackValues.isEmpty()) {
+					// If we are not showing recipe variables, we still want to show the item stacks that are in the crafting interface
+					gatheredData.itemBoxItems.addAll(variableValue.itemStackValues);
+				}
 			}
 		}
 
