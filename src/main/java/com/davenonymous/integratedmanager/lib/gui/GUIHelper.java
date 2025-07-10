@@ -4,6 +4,7 @@ package com.davenonymous.integratedmanager.lib.gui;
 import com.davenonymous.integratedmanager.IntegratedManager;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
@@ -13,9 +14,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.*;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -27,8 +26,72 @@ import org.joml.Vector2f;
 import org.joml.Vector4f;
 import org.lwjgl.opengl.GL11;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class GUIHelper {
 	public static ResourceLocation tabIcons = IntegratedManager.resource("textures/gui/tabicons.png");
+	private static Map<Integer, DynamicImageResources.DynTexture> circleCache = new HashMap<>();
+
+	private static DynamicImageResources.DynTexture getCircleTexture(int radius) {
+		if(circleCache.containsKey(radius)) {
+			return circleCache.get(radius);
+		}
+
+		TextureManager tm = Minecraft.getInstance().getTextureManager();
+
+		int diameter = radius * 2 + 1;
+		var image = new NativeImage(diameter, diameter, true);
+		int rmin = radius * radius - radius;
+		int rmax = radius * radius + radius;
+		for(int y = -radius; y <= radius; y++) {
+			int sqy = y * y;
+			for(int x = -radius; x <= radius; x++) {
+				int sqd = x * x + sqy;
+				if(sqd < rmin) {
+					image.setPixelRGBA(x + radius, y + radius, 0xFFFFFFFF); // Fully filled pixel
+				} else if(sqd < rmax) {
+					int c = rmax - sqd;
+					c *= 256;
+					c /= 2 * radius;
+					if(c > 255) c = 255;
+					image.setPixelRGBA(x + radius, y + radius, (c << 24) + 0xFFFFFF); // Antialiased pixel
+				}
+			}
+		}
+
+		ResourceLocation resource = tm.register(
+			"circle_" + radius, new DynamicTexture(image) {
+				public void upload() {
+					this.bind();
+					NativeImage td = this.getPixels();
+					this.getPixels().upload(0, 0, 0, 0, 0, td.getWidth(), td.getHeight(), false, false, false, false);
+				}
+			}
+		);
+
+		var result = new DynamicImageResources.DynTexture(resource, image);
+		circleCache.put(radius, result);
+		return result;
+	}
+
+	public static void drawFilledCircle(GuiGraphics guiGraphics, float x, float y, int radius, int color) {
+		// This draws a filled pixel-shaded circle, i.e. a fixed color with slightly brighter pixels on the top and left edges
+		// and slightly darker pixels on the bottom and right edges.
+
+		DynamicImageResources.DynTexture circleTexture = getCircleTexture(radius);
+		int diameter = radius * 2;
+		RenderSystem.enableBlend();
+		RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
+		setShaderColor(color);
+		guiGraphics.pose().pushPose();
+		guiGraphics.pose().translate(x, y, 1);
+		guiGraphics.blitInscribed(circleTexture.resource(), 0, 0, diameter, diameter, diameter, diameter, true, true);
+		guiGraphics.pose().popPose();
+		RenderSystem.disableBlend();
+		RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f); // Reset color to white
+	}
+
 
 	public static void drawLine(GuiGraphics guiGraphics, int x1, int y1, int x2, int y2, int color) {
 		drawLine(guiGraphics, x1, y1, x2, y2, color, color);

@@ -4,6 +4,8 @@ import com.davenonymous.integratedmanager.lib.gui.Icons;
 import com.davenonymous.integratedmanager.lib.gui.event.*;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetNodeGraph;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPanelWithValue;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import org.joml.Vector2f;
@@ -81,7 +83,10 @@ public class NodeWidget<T> extends WidgetPanelWithValue<T> {
 	public void draw(GuiGraphics guiGraphics, Screen screen) {
 		ManagerPanel managerPanel = getParentByType(ManagerPanel.class);
 		if(managerPanel != null && managerPanel.selectedWidget != null && managerPanel.selectedWidget.equals(this)) {
+			guiGraphics.pose().pushPose();
+			guiGraphics.pose().translate(0, 0, -1); // Offset for the background
 			guiGraphics.fill(-5, -5, this.width + 5, this.height + 5, 0x30FFFFFF); // Draw a semi-transparent background
+			guiGraphics.pose().popPose();
 		}
 		super.draw(guiGraphics, screen);
 

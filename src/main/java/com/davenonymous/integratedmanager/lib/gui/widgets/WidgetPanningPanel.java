@@ -120,7 +120,10 @@ public class WidgetPanningPanel extends WidgetPanel {
 	@Override
 	public void draw(GuiGraphics guiGraphics, Screen screen) {
 		guiGraphics.enableScissor(this.x, this.y, this.x + width, this.y + height);
+		guiGraphics.pose().pushPose();
+		guiGraphics.pose().translate(0, 0, -5);
 		GUIHelper.drawColoredCanvas(guiGraphics, this.width, this.height, 0xFF222222);
+		guiGraphics.pose().popPose();
 		super.draw(guiGraphics, screen);
 		guiGraphics.disableScissor();
 	}
