@@ -12,15 +12,20 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class VariableFacadeWidget extends NodeWidget<VariableData> {
 	WidgetItemStack variableWidget;
+	String searchHaystack = "";
 
 	public VariableFacadeWidget(VariableData variable) {
 		super(variable);
 		this.setSize(16, 16);
+
+		List<String> stringsForSearch = new ArrayList<>();
+		stringsForSearch.add(I18n.get(variable.translationKey));
 
 		variableWidget = new WidgetItemStack(variable.variableStack.copy());
 		variableWidget.setDrawTooltip(false);

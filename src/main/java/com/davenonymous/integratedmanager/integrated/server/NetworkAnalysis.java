@@ -213,7 +213,7 @@ public class NetworkAnalysis {
 					//noinspection rawtypes,unchecked
 					IAspectWrite activeAspect = partTypeWriter.getActiveAspect(partTarget, (IPartStateWriter) partNetworkElement.getPartState());
 					if(activeAspect != null) {
-						partData.activeAspect = activeAspect.getUniqueName();
+						partData.activeAspect = new AspectData(activeAspect);
 						IAspectProperties props = activeAspect.getProperties(partTypeWriter, partTarget, ((IPartNetworkElement<?, ?>) networkElement).getPartState());
 						IAspectProperties defaultProps = activeAspect.getDefaultProperties();
 						for(Object propertyObj : activeAspect.getPropertyTypes()) {

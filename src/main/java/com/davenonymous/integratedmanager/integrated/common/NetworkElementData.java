@@ -1,10 +1,14 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
+import com.davenonymous.integratedmanager.gui.search.ElementSearchables;
+import com.davenonymous.integratedmanager.gui.search.SearchIndex;
 import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
+import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetNodeGraph;
 import com.davenonymous.integratedmanager.networking.NetworkHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -117,5 +121,32 @@ public class NetworkElementData {
 			}
 		}
 		return null;
+	}
+
+	public void updateSearchIndex(Widget owner) {
+		if (partData != null) {
+			partData.updateSearchIndex(owner);
+		}
+		if (tileData != null) {
+			tileData.updateSearchIndex(owner);
+		}
+		if (valueData != null) {
+			valueData.updateSearchIndex(owner);
+		}
+
+		if(activeAspect != null) {
+			activeAspect.updateSearchIndex(owner);
+		} else if (aspects != null && !aspects.isEmpty()) {
+			for (AspectData aspect : aspects) {
+				aspect.updateSearchIndex(owner);
+			}
+		}
+
+		SearchIndex.add(ElementSearchables.IDS, String.valueOf(id), owner);
+		if(partId >= 0) {
+			SearchIndex.add(ElementSearchables.IDS, String.valueOf(partId), owner);
+		}
+
+
 	}
 }

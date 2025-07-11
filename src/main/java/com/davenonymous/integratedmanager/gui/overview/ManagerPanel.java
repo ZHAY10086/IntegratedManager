@@ -3,6 +3,8 @@ package com.davenonymous.integratedmanager.gui.overview;
 import com.davenonymous.integratedmanager.IntegratedManager;
 import com.davenonymous.integratedmanager.gui.AllElementsReceivedEvent;
 import com.davenonymous.integratedmanager.gui.NodeUpdateEvent;
+import com.davenonymous.integratedmanager.gui.search.ElementSearchables;
+import com.davenonymous.integratedmanager.gui.search.SearchIndex;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.PartData;
@@ -247,6 +249,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 					}
 
 					if(elementWidget != null) {
+						element.updateSearchIndex(elementWidget);
 						elementWidget.addListener(MouseClickEvent.class, (event1, widget1) -> {
 							if(event1.button != 0 || getGUI().isShiftDown()) { // Left click + shift (scancode=340)
 								return WidgetEventResult.CONTINUE_PROCESSING;
@@ -304,7 +307,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 							return WidgetEventResult.HANDLED;
 						});
 
-
+						variable.updateSearchIndex(variableWidget);
 						nodeGraph.add(variableWidget);
 						variableWidgets.put(variable.id, variableWidget);
 
@@ -390,7 +393,6 @@ public class ManagerPanel extends WidgetPanningPanel {
 								}
 							}
 						}
-
 					}
 				}
 
@@ -457,4 +459,108 @@ public class ManagerPanel extends WidgetPanningPanel {
 		return this.nodeGraph.isFrozen();
 	}
 
+	public void runSearch(String rawQueryString, boolean searchCompareCase, boolean searchWithRegex, Set<ElementSearchables> includeInSearch) {
+		String queryString = rawQueryString.trim();
+		if (!searchCompareCase) {
+			queryString = queryString.toLowerCase();
+		}
+
+
+		for(Widget widget : this.nodeGraph.nodes().keySet()) {
+			if(!(widget instanceof NodeWidget<?> nodeWidget)) {
+				continue;
+			}
+
+			nodeWidget.setMatchesSearch(false);
+			Map<ElementSearchables, Set<String>> widgetTerms = SearchIndex.widgetSearchIndex.get(nodeWidget);
+			if (widgetTerms == null || widgetTerms.isEmpty()) {
+				continue; // No searchable terms for this widget
+			}
+
+			Set<String> matchableTerms = widgetTerms.keySet().stream().filter(includeInSearch::contains).map(widgetTerms::get).reduce(new HashSet<>(), (a, b) -> {
+				a.addAll(b);
+				return a;
+			});
+
+			boolean matchesAllPart = true;
+			for(String queryPart : queryString.split(" ")) {
+				if(queryPart.isBlank()) {
+					continue; // Skip empty parts
+				}
+				boolean partMatches = false;
+				for(String rawTerm : matchableTerms) {
+					String term = rawTerm;
+					if (!searchCompareCase) {
+						term = term.toLowerCase();
+					}
+
+					if (searchWithRegex) {
+						if (term.matches(queryPart)) {
+							partMatches = true;
+							break; // Found a match, no need to check further
+						}
+					} else {
+						if (term.contains(queryPart)) {
+							partMatches = true;
+							break; // Found a match, no need to check further
+						}
+					}
+				}
+				if (!partMatches) {
+					matchesAllPart = false; // If any part does not match, we can stop checking
+					break;
+				}
+			}
+
+			nodeWidget.setMatchesSearch(matchesAllPart);
+		}
+
+
+
+
+		/* Classic
+		for(ElementSearchables searchable : includeInSearch) {
+			Map<String, Set<Widget>> searchableIndex = SearchIndex.searchIndex.get(searchable);
+
+			boolean matchesAll = true;
+			List<String> matchingTerms = new ArrayList<>();
+			for(String queryPart : queryString.split(" ")) {
+				if (queryPart.isBlank()) {
+					continue; // Skip empty parts
+				}
+
+				for(String rawTerm : searchableIndex.keySet()) {
+					String term = rawTerm;
+					if (!searchCompareCase) {
+						term = term.toLowerCase();
+					}
+
+					if (searchWithRegex) {
+						if (term.matches(queryPart)) {
+							matchingTerms.add(rawTerm);
+						}
+					} else {
+						if (term.contains(queryPart)) {
+							matchingTerms.add(rawTerm);
+						}
+					}
+				}
+			}
+
+			if(!matchingTerms.isEmpty()) {
+				// If all terms match, we can highlight the nodes
+				for(String term : matchingTerms) {
+					Set<Widget> widgets = searchableIndex.get(term);
+					if(widgets != null) {
+						for(Widget widget : widgets) {
+							if(widget instanceof NodeWidget<?> nodeWidget) {
+								nodeWidget.setMatchesSearch(true);
+							}
+						}
+					}
+				}
+			}
+		}
+		**/
+	}
 }

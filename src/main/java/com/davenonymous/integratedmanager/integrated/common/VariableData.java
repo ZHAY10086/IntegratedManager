@@ -1,11 +1,15 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
 import com.davenonymous.integratedmanager.IntegratedManager;
+import com.davenonymous.integratedmanager.gui.search.ElementSearchables;
+import com.davenonymous.integratedmanager.gui.search.SearchIndex;
 import com.davenonymous.integratedmanager.integrated.IDRegistries;
 import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.server.ValueTypeTranslator;
+import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.networking.NetworkHelper;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -13,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.cyclops.integrateddynamics.RegistryEntries;
 import org.cyclops.integrateddynamics.api.evaluate.EvaluationException;
+import org.cyclops.integrateddynamics.api.evaluate.operator.IOperator;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValue;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IValueType;
 import org.cyclops.integrateddynamics.api.evaluate.variable.IVariable;
@@ -39,7 +44,7 @@ public class VariableData {
 	public String facadeClassName = "unknown_facade";
 	public String label;
 	public ResourceLocation type;
-	public ResourceLocation aspect = UnknownThings.Aspect;
+	public AspectData aspect = null;
 	public ItemStack variableStack = new ItemStack(RegistryEntries.ITEM_VARIABLE);
 	public String translationKey;
 	public ValueData valueData = null;
@@ -64,11 +69,16 @@ public class VariableData {
 		this.referencedVariableIds = buf.readList(FriendlyByteBuf::readInt);
 		this.referencedPartIds = buf.readList(FriendlyByteBuf::readInt);
 		this.type = buf.readResourceLocation();
-		this.aspect = buf.readResourceLocation();
 		this.variableStack = ItemStack.STREAM_CODEC.decode(buf);
 		this.translationKey = buf.readUtf();
 		this.facadeClassName = buf.readUtf();
 		this.proxyId = buf.readVarInt();
+
+		if(buf.readBoolean()) {
+			this.aspect = AspectData.STREAM_CODEC.decode(buf);
+		} else {
+			this.aspect = null;
+		}
 
 		if(buf.readBoolean()) {
 			this.valueData = ValueData.STREAM_CODEC.decode(buf);
@@ -96,11 +106,16 @@ public class VariableData {
 		buf.writeCollection(referencedVariableIds, FriendlyByteBuf::writeInt);
 		buf.writeCollection(referencedPartIds, FriendlyByteBuf::writeInt);
 		buf.writeResourceLocation(type);
-		buf.writeResourceLocation(aspect);
 		ItemStack.STREAM_CODEC.encode(buf, variableStack);
 		buf.writeUtf(translationKey);
 		buf.writeUtf(facadeClassName);
 		buf.writeVarInt(proxyId);
+		if (aspect != null) {
+			buf.writeBoolean(true);
+			AspectData.STREAM_CODEC.encode(buf, aspect);
+		} else {
+			buf.writeBoolean(false);
+		}
 
 		if (valueData != null) {
 			buf.writeBoolean(true);
@@ -161,7 +176,7 @@ public class VariableData {
 
 			variableData.translationKey = aspectVariableFacade.getAspect().getTranslationKey();
 			variableData.variableStack = fakeVariableStack.isEmpty() ? new ItemStack(RegistryEntries.ITEM_VARIABLE) : fakeVariableStack;
-			variableData.aspect = aspectVariableFacade.getAspect().getUniqueName();
+			variableData.aspect = new AspectData(aspectVariableFacade.getAspect());
 			variableData.referencedPartIds.add(aspectVariableFacade.getPartId());
 		}
 
@@ -172,11 +187,11 @@ public class VariableData {
 				IDRegistries.operatorRegistry
 			);
 
-			var operator = operatorVariableFacade.getOperator();
+			IOperator operator = operatorVariableFacade.getOperator();
 
 			variableData.translationKey = operator.getTranslationKey();
 			variableData.variableStack = fakeVariableStack.isEmpty() ? new ItemStack(RegistryEntries.ITEM_VARIABLE) : fakeVariableStack;
-			variableData.aspect = operator.getUniqueName();
+			variableData.aspect = new AspectData(operator);
 
 			for (IValueType<?> inputType : operator.getInputTypes()) {
 				variableData.addInputType(inputType);
@@ -199,7 +214,7 @@ public class VariableData {
 			);
 			variableData.translationKey = valueTypeVariableFacade.getValueType().getTranslationKey();
 			variableData.variableStack = fakeVariableStack.isEmpty() ? new ItemStack(RegistryEntries.ITEM_VARIABLE) : fakeVariableStack;
-			variableData.aspect = valueTypeVariableFacade.getValueType().getUniqueName();
+			variableData.aspect = new AspectData(valueTypeVariableFacade.getValueType());
 		}
 
 		if(variableFacade instanceof IProxyVariableFacade proxyVariableFacade) {
@@ -233,6 +248,40 @@ public class VariableData {
 
 	public boolean isRecipe() {
 		return this.facadeClassName.equals("ValueTypeVariableFacade") && type.equals(ValueTypes.OBJECT_RECIPE.getUniqueName());
+	}
+
+	public void updateSearchIndex(Widget owner) {
+		if (valueData != null) {
+			valueData.updateSearchIndex(owner);
+		}
+
+		if (translationKey != null && !translationKey.isBlank()) {
+			SearchIndex.add(translationKey, owner);
+		}
+
+		if (label != null && !label.isBlank()) {
+			SearchIndex.add(label, owner);
+		}
+
+		if (aspect != null) {
+			aspect.updateSearchIndex(owner);
+		}
+
+		for(TypeData inputType : inputTypes) {
+			String translatedType = I18n.exists(inputType.typeTranslationKey) ? I18n.get(inputType.typeTranslationKey) : inputType.valueType.toString();
+			SearchIndex.add(translatedType, owner);
+		}
+
+		if(outputType != null) {
+			String translatedType = I18n.exists(outputType.typeTranslationKey) ? I18n.get(outputType.typeTranslationKey) : outputType.valueType.toString();
+			SearchIndex.add(translatedType, owner);
+		}
+
+		for (ValueData aspectProperty : aspectProperties.values()) {
+			aspectProperty.updateSearchIndex(owner);
+		}
+
+		SearchIndex.add(ElementSearchables.IDS, String.valueOf(id), owner);
 	}
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, VariableData> STREAM_CODEC =

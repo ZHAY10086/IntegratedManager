@@ -16,6 +16,11 @@ public class ColorHelper {
 	public static Color COLOR_DISABLED = new Color(160, 160, 160, 255);
 	public static Color COLOR_ERRORED = new Color(150, 50, 50);
 
+	public static int rainbow(float time, float saturation, float brightness) {
+		float hue = (time % 360.0f) / 360.0f;
+		return Color.getHSBColor(hue, saturation, brightness).getRGB();
+	}
+
 	public static Color hex2Rgb(String colorStr) {
 		if(colorStr == null) {
 			LOGGER.warn("Color String is null");

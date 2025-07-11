@@ -1,5 +1,6 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
+import com.davenonymous.integratedmanager.gui.search.SearchIndex;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.TileData;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;

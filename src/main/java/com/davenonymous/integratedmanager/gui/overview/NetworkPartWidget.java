@@ -86,7 +86,7 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 				StringTooltipComponent.orange("#" + getValue().partId))
 		);
 
-		boolean hasActiveAspect = part.activeAspect != null && part.activeAspect != UnknownThings.Aspect && getValue().getAspect(part.activeAspect) != null;
+		boolean hasActiveAspect = part.activeAspect != null && getValue().getAspect(part.activeAspect.uniqueName) != null;
 		if(!hasActiveAspect && I18n.exists(part.translationKey + ".info")) {
 			partWidget.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(part.translationKey + ".info")));
 		}
@@ -128,9 +128,9 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 	protected void updateTooltips() {
 		var data = getValue();
 
-		boolean hasActiveAspect = part.activeAspect != null && part.activeAspect != UnknownThings.Aspect && data.getAspect(part.activeAspect) != null;
+		boolean hasActiveAspect = part.activeAspect != null && data.getAspect(part.activeAspect.uniqueName) != null;
 		if(part.writer && hasActiveAspect) {
-			var aspect = data.getAspect(part.activeAspect);
+			var aspect = data.getAspect(part.activeAspect.uniqueName);
 			var translationKey = aspect.translationKey;
 			if(I18n.exists(translationKey + ".info")) {
 				partWidget.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(translationKey + ".info")));
@@ -184,7 +184,7 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 			);
 			for(var aspect : data.aspects.stream().sorted(Comparator.comparing(aspectData -> I18n.get(aspectData.translationKey))).toList()) {
 				var label = "- " + (I18n.exists(aspect.translationKey) ? I18n.get(aspect.translationKey) : aspect.uniqueName.toString());
-				if(part.activeAspect.equals(aspect.uniqueName)) {
+				if(part.activeAspect != null && part.activeAspect.uniqueName.equals(aspect.uniqueName)) {
 					partWidget.addTooltipElement(StringTooltipComponent.green(label));
 				} else {
 					if(index == selected) {
@@ -206,6 +206,5 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 				partWidget.addTooltipElement(StringTooltipComponent.orange(I18n.get("integratedmanager.message.scroll_for_aspect_details")));
 			}
 		}
-
 	}
 }

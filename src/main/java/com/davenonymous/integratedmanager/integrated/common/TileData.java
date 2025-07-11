@@ -1,5 +1,8 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
+import com.davenonymous.integratedmanager.gui.search.SearchIndex;
+import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -47,6 +50,20 @@ public class TileData {
 			buf.writeBoolean(false);
 		}
 		buf.writeVarInt(proxyId); // Write proxy ID
+	}
+
+	public void updateSearchIndex(Widget owner) {
+		if(tileStack != null && !tileStack.isEmpty()) {
+			SearchIndex.add(I18n.get(tileStack.getDescriptionId()), owner);
+		}
+
+		if(proxyId >= 0) {
+			SearchIndex.add("Proxy " + proxyId, owner);
+		}
+
+		if (level != null && !level.isEmpty()) {
+			SearchIndex.add(level, owner);
+		}
 
 	}
 

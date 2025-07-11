@@ -80,7 +80,7 @@ public class WidgetNativeWidget<T extends AbstractWidget> extends Widget {
 			MouseClickEvent.class, ((event, widget) -> {
 				nativeWidget.setFocused(true);
 				if(nativeWidget.mouseClicked(event.x - this.getActualX(), event.y - this.getActualY(), event.button)) {
-					return WidgetEventResult.HANDLED;
+					return WidgetEventResult.CONTINUE_PROCESSING;
 				}
 				return WidgetEventResult.CONTINUE_PROCESSING;
 			})
@@ -89,7 +89,7 @@ public class WidgetNativeWidget<T extends AbstractWidget> extends Widget {
 		this.addListener(
 			MouseReleasedEvent.class, ((event, widget) -> {
 				if(nativeWidget.mouseReleased(event.x - this.getActualX(), event.y - this.getActualY(), event.button)) {
-					return WidgetEventResult.HANDLED;
+					return WidgetEventResult.CONTINUE_PROCESSING;
 				}
 				return WidgetEventResult.CONTINUE_PROCESSING;
 			})

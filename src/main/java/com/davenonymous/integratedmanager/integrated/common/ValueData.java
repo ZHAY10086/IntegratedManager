@@ -1,5 +1,8 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
+import com.davenonymous.integratedmanager.gui.search.ElementSearchables;
+import com.davenonymous.integratedmanager.gui.search.SearchIndex;
+import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.networking.NetworkHelper;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -132,6 +135,49 @@ public class ValueData extends TypeData {
 
 	public String getBestName() {
 		return I18n.exists(this.valueTranslationKey) ? I18n.get(this.valueTranslationKey) : this.stringValue;
+	}
+
+	public void updateSearchIndex(Widget owner) {
+		SearchIndex.add(ElementSearchables.VALUES, getBestName(), owner);
+
+		if(outputType != null && I18n.exists(outputType.typeTranslationKey)) {
+			SearchIndex.add(I18n.get(outputType.typeTranslationKey), owner);
+		}
+
+		if(listType != null && I18n.exists(listType.typeTranslationKey)) {
+			SearchIndex.add(I18n.get(listType.typeTranslationKey), owner);
+
+			for(ValueData listValue : listValues) {
+				listValue.updateSearchIndex(owner);
+			}
+		}
+
+		for(TypeData inputType : inputTypes) {
+			if(!I18n.exists(inputType.typeTranslationKey)) {
+				continue;
+			}
+			SearchIndex.add(I18n.get(inputType.typeTranslationKey), owner);
+		}
+
+		if(forgeEnergyValue > 0) {
+			SearchIndex.add(ElementSearchables.VALUES, "Forge Energy " + forgeEnergyValue, owner);
+		}
+
+		for(ItemStack itemStack : itemStackValues) {
+			if (itemStack.isEmpty()) {
+				continue;
+			}
+			SearchIndex.add(ElementSearchables.VALUES, itemStack.getHoverName().getString(), owner);
+		}
+
+		for(FluidStack fluidStack : fluidStackValues) {
+			if (fluidStack.isEmpty()) {
+				continue;
+			}
+			String translatedType = I18n.exists(fluidStack.getDescriptionId()) ? I18n.get(fluidStack.getDescriptionId()) : fluidStack.toString();
+			SearchIndex.add(ElementSearchables.VALUES, translatedType, owner);
+		}
+
 	}
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ValueData> STREAM_CODEC = StreamCodec.ofMember(

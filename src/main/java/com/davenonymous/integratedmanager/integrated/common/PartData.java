@@ -1,6 +1,9 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
+import com.davenonymous.integratedmanager.gui.overview.NodeWidget;
+import com.davenonymous.integratedmanager.gui.search.SearchIndex;
 import com.davenonymous.integratedmanager.integrated.UnknownThings;
+import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.networking.NetworkHelper;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
@@ -24,7 +27,7 @@ public class PartData {
 	public Direction targetSide = null;
 	public ItemStack targetStack = ItemStack.EMPTY;
 	public String level;
-	public ResourceLocation activeAspect = UnknownThings.Aspect;
+	public AspectData activeAspect = null;
 	public Map<String, ValueData> activeAspectProperties = new HashMap<>();
 	public String partClassName = "UnknownPartClass";
 	public String translationKey = "";
@@ -68,10 +71,45 @@ public class PartData {
 			this.translationKey = buf.readUtf(256);
 		}
 
-		this.activeAspect = buf.readResourceLocation();
+		if(buf.readBoolean()) {
+			this.activeAspect = AspectData.STREAM_CODEC.decode(buf);
+		}
 
 		this.activeAspectProperties = NetworkHelper.readMap(buf, HashMap::new, FriendlyByteBuf::readUtf, ValueData.STREAM_CODEC);
 		this.errors = NetworkHelper.readCollection(buf, ArrayList::new, FriendlyByteBuf::readUtf);
+	}
+
+	public void updateSearchIndex(Widget owner) {
+		if(I18n.exists(translationKey)) {
+			SearchIndex.add(I18n.get(translationKey), owner);
+		}
+		if(I18n.exists(translationKey + ".info")) {
+			SearchIndex.add(I18n.get(translationKey + ".info"), owner);
+		}
+
+		if(activeAspect != null) {
+			activeAspect.updateSearchIndex(owner);
+		}
+
+		if (!activeAspectProperties.isEmpty()) {
+			for (String propertyKey : activeAspectProperties.keySet()) {
+				if (I18n.exists(propertyKey)) {
+					SearchIndex.add(I18n.get(propertyKey), owner);
+				}
+				if (I18n.exists(propertyKey + ".info")) {
+					SearchIndex.add(I18n.get(propertyKey + ".info"), owner);
+				}
+			}
+		}
+		for(String error : errors) {
+			if (I18n.exists(error)) {
+				SearchIndex.add(I18n.get(error), owner);
+			} else {
+				SearchIndex.add(error, owner);
+			}
+		}
+
+
 	}
 
 	public void writeToBuffer(RegistryFriendlyByteBuf buf) {
@@ -120,7 +158,12 @@ public class PartData {
 			buf.writeBoolean(false);
 		}
 
-		buf.writeResourceLocation(activeAspect);
+		if (activeAspect != null) {
+			buf.writeBoolean(true);
+			activeAspect.writeToBuffer(buf);
+		} else {
+			buf.writeBoolean(false);
+		}
 		NetworkHelper.writeMap(buf, activeAspectProperties, FriendlyByteBuf::writeUtf, ValueData.STREAM_CODEC);
 		NetworkHelper.writeCollection(buf, errors, FriendlyByteBuf::writeUtf);
 	}

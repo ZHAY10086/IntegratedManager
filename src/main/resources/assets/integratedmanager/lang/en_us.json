@@ -13,6 +13,34 @@
 	"integratedmanager.message.variable_id": "Variable ID",
 	"integratedmanager.message.class_name": "Class",
 
+	"integratedmanager.searchtoggles.case": "aA",
+	"integratedmanager.searchtoggles.case.info": "Search is case sensitive.",
+
+	"integratedmanager.searchtoggles.regex": ".*",
+	"integratedmanager.searchtoggles.regex.info": "Search is a regular expression.",
+
+	"integratedmanager.searchtoggles.variables": "Var",
+	"integratedmanager.searchtoggles.variables.info": "Search for variables in the network.",
+
+	"integratedmanager.searchtoggles.part": "Part",
+	"integratedmanager.searchtoggles.part.info": "Search for network parts in the network.",
+
+	"integratedmanager.searchtoggles.tile": "Tile",
+	"integratedmanager.searchtoggles.tile.info": "Search for network tiles in the network.",
+
+	"integratedmanager.searchtoggles.aspects": "Aspects",
+	"integratedmanager.searchtoggles.aspects.info": "Search for aspects in the network.",
+
+	"integratedmanager.searchtoggles.id": "ID",
+	"integratedmanager.searchtoggles.id.info": "Search for IDs",
+
+	"integratedmanager.searchtoggles.value": "Val",
+	"integratedmanager.searchtoggles.value.info": "Search for elements by value",
+
+
+
+
+
 	"integratedmanager.configuration.title": "Integrated Manager Configuration",
 
 	"integratedmanager.configuration.debug": "Debug",

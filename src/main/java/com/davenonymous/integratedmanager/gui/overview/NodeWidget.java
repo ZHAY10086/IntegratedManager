@@ -1,11 +1,13 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
+import com.davenonymous.integratedmanager.gui.ManagerOverview;
+import com.davenonymous.integratedmanager.lib.gui.ColorHelper;
+import com.davenonymous.integratedmanager.lib.gui.GUIHelper;
 import com.davenonymous.integratedmanager.lib.gui.Icons;
 import com.davenonymous.integratedmanager.lib.gui.event.*;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetNodeGraph;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPanelWithValue;
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import org.joml.Vector2f;
@@ -14,6 +16,7 @@ public class NodeWidget<T> extends WidgetPanelWithValue<T> {
 	boolean initialized = false;
 	int lastMouseX = -1;
 	int lastMouseY = -1;
+	boolean matchesSearch = false;
 
 	public NodeWidget(T value) {
 		super(value);
@@ -79,8 +82,27 @@ public class NodeWidget<T> extends WidgetPanelWithValue<T> {
 			});
 	}
 
+	public boolean matchesSearch() {
+		return matchesSearch;
+	}
+
+	public NodeWidget<T> setMatchesSearch(boolean matchesSearch) {
+		this.matchesSearch = matchesSearch;
+		return this;
+	}
+
 	@Override
 	public void draw(GuiGraphics guiGraphics, Screen screen) {
+		if(matchesSearch() && screen instanceof ManagerOverview mo && !mo.searchString.isBlank()) {
+			int circleRadius = (this.width + 10) / 2;
+			guiGraphics.pose().pushPose();
+			guiGraphics.pose().translate(0, 0, -1); // Offset for the background
+			int color = ColorHelper.rainbow(Minecraft.getInstance().level.getGameTime(), 0.5f, 0.5f);
+			GUIHelper.drawFilledCircle(guiGraphics, -4.5f, -4.5f, circleRadius, color);
+			guiGraphics.pose().popPose();
+
+		}
+
 		ManagerPanel managerPanel = getParentByType(ManagerPanel.class);
 		if(managerPanel != null && managerPanel.selectedWidget != null && managerPanel.selectedWidget.equals(this)) {
 			guiGraphics.pose().pushPose();
