@@ -191,14 +191,19 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 				StringTooltipComponent.cyan(I18n.get("integratedmanager.message.class_name") + ":"),
 				WrappedStringTooltipComponent.gray(variable.facadeClassName)
 			);
-			table.addRow(
-				StringTooltipComponent.cyan(I18n.get("aspect.integrateddynamics.name") + ":"),
-				WrappedStringTooltipComponent.gray(variable.aspect.toString())
-			);
-			table.addRow(
-				StringTooltipComponent.cyan(I18n.get("valuetype.integrateddynamics.value_type") + ":"),
-				WrappedStringTooltipComponent.gray(variable.type.toString())
-			);
+			if(variable.aspect != null) {
+				table.addRow(
+					StringTooltipComponent.cyan(I18n.get("aspect.integrateddynamics.name") + ":"),
+					WrappedStringTooltipComponent.gray(variable.aspect.toString())
+				);
+			}
+			if(variable.type != null) {
+				table.addRow(
+					StringTooltipComponent.cyan(I18n.get("valuetype.integrateddynamics.value_type") + ":"),
+					WrappedStringTooltipComponent.gray(variable.type.toString())
+				);
+			}
+
 			variableWidget.addTooltipElement(
 				LabeledLineSeparatorTooltipComponent.advancedInfos(variableWidget),
 				table
