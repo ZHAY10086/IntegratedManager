@@ -5,6 +5,7 @@ import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPanel;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.IGraphEdge;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.LineStyle;
+import com.davenonymous.integratedmanager.setup.config.DebugConfig;
 
 import java.util.*;
 
@@ -118,9 +119,9 @@ public class AbstractGraphProvider extends WidgetPanel implements IGraphProvider
 		} while (iterations < maxIterations);
 
 		if (iterations >= maxIterations) {
-			IntegratedManager.LOGGER.debug("Node graph did not settle after {} iterations", maxIterations);
+			IntegratedManager.LOGGER.debug("Node graph did not settle after {} iterations", maxIterations + DebugConfig.settleInitialSteps);
 		} else {
-			IntegratedManager.LOGGER.debug("Node graph settled after {} iterations", iterations);
+			IntegratedManager.LOGGER.debug("Node graph settled after {} iterations", iterations + DebugConfig.settleInitialSteps);
 		}
 	}
 

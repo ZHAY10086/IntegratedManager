@@ -94,42 +94,45 @@ public class ManagerPanel extends WidgetPanningPanel {
 				PartTargetWidget partTargetWidget = new PartTargetWidget(part);
 				partTargetWidget.setPosition(initialX + 16, initialY + 16);
 				nodeGraph.add(partTargetWidget);
+
+				partTargetWidget.addListener(MouseClickEvent.class, (event1, widget1) -> {
+					if(event1.button != 0 || getGUI().isShiftDown()) { // Left click + shift (scancode=340)
+						return WidgetEventResult.CONTINUE_PROCESSING;
+					}
+
+					if(selectedWidget != null && selectedWidget.equals(widget1)) {
+						deselectAll();
+						return WidgetEventResult.HANDLED;
+					}
+
+					deselectAll();
+					selectedWidget = widget1;
+					widget1.setSelected(true);
+
+					selectedDescendants = nodeGraph.getDescendants(selectedWidget);
+					selectedAncestors = nodeGraph.getAncestors(selectedWidget);
+					selectedDescendants.forEach(descendent -> descendent.setSelected(true));
+					selectedAncestors.forEach(ancestor -> ancestor.setSelected(true));
+
+					return WidgetEventResult.HANDLED;
+				});
+
 				this.partTargetWidgets.put(part.targetPos, partTargetWidget);
 			}
 
 			PartTargetWidget partTargetWidget = this.partTargetWidgets.get(part.targetPos);
 			ConstrainedGraphEdge edge;
 			if(part.writer) {
-				edge = ConstrainedGraphEdge.createMaxDistanceEdge(partWidget, partTargetWidget, 128f);
+				edge = ConstrainedGraphEdge.createMaxDistanceEdge(partWidget, partTargetWidget, 64f);
 			} else {
-				edge = ConstrainedGraphEdge.createMaxDistanceEdge(partTargetWidget, partWidget, 128f);
+				edge = ConstrainedGraphEdge.createMaxDistanceEdge(partTargetWidget, partWidget, 64f);
 			}
 			edge.setShouldRender(true);
 			edge.setStyle(LineStyle.ARROW);
 			edge.setColorSource(ColorHelper.COLOR_ERRORED.getRGB());
 			nodeGraph.addEdge(edge);
 
-			partTargetWidget.addListener(MouseClickEvent.class, (event1, widget1) -> {
-				if(event1.button != 0 || getGUI().isShiftDown()) { // Left click + shift (scancode=340)
-					return WidgetEventResult.CONTINUE_PROCESSING;
-				}
 
-				if(selectedWidget != null && selectedWidget.equals(widget1)) {
-					deselectAll();
-					return WidgetEventResult.HANDLED;
-				}
-
-				deselectAll();
-				selectedWidget = widget1;
-				widget1.setSelected(true);
-
-				selectedDescendants = nodeGraph.getDescendants(selectedWidget);
-				selectedAncestors = nodeGraph.getAncestors(selectedWidget);
-				selectedDescendants.forEach(descendent -> descendent.setSelected(true));
-				selectedAncestors.forEach(ancestor -> ancestor.setSelected(true));
-
-				return WidgetEventResult.HANDLED;
-			});
 		}
 
 		return partWidget;
@@ -282,7 +285,11 @@ public class ManagerPanel extends WidgetPanningPanel {
 							continue; // No neighbor widget, skip
 						}
 
-						ConstrainedGraphEdge edge = ConstrainedGraphEdge.createMaxDistanceEdge(intersectionWidget, neighborWidget, 50.0f);
+						float edgeDistance = 50.0f;
+						if(connectionType == IntegratedConnectionType.MONO) {
+							edgeDistance = 96f;
+						}
+						ConstrainedGraphEdge edge = ConstrainedGraphEdge.createMaxDistanceEdge(intersectionWidget, neighborWidget, edgeDistance);
 						edge.setShouldRender(true);
 						edge.setStyle(LineStyle.INTEGRATED_DYNAMICS_CABLE);
 						edge.setColorSource(0xFFFFFFFF);

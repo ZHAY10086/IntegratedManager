@@ -1,12 +1,13 @@
 package com.davenonymous.integratedmanager.lib.gui.widgets.graph;
 
 import com.davenonymous.integratedmanager.gui.overview.CableIntersectionWidget;
+import com.davenonymous.integratedmanager.gui.overview.PartTargetWidget;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.IGraphEdge;
 import org.joml.Vector2f;
 
 public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
-
+	private float orbitalStrength = 1f; // Strength of the orbital effect
 	protected IntegrateThenApplyPositioning() {
 	}
 
@@ -224,9 +225,10 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 				if(nodeA == nodeB) {
 					continue; // Skip self-comparison
 				}
+				float minDistanceToUse = minDistance;
 				if(nodeA instanceof CableIntersectionWidget && nodeB instanceof CableIntersectionWidget) {
 					// If both nodes are cable intersections, skip them
-					continue;
+					minDistanceToUse = minDistance * 0.5f;
 				}
 
 				Vector2f direction = new Vector2f(graph.nodes().get(nodeB).position()).sub(positionA);
@@ -235,8 +237,8 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 					// If the distance is zero, skip this pair to avoid division by zero
 					continue;
 				}
-				if(distance < minDistance) {
-					direction.normalize().mul((minDistance - distance) * -force);
+				if(distance < minDistanceToUse) {
+					direction.normalize().mul((minDistanceToUse - distance) * -force);
 					Vector2f velocityA = new Vector2f(graph.nodes().get(nodeA).velocity()).add(direction);
 					Vector2f velocityB = new Vector2f(graph.nodes().get(nodeB).velocity()).sub(direction);
 					graph.setNodeVelocity(nodeA, velocityA);
@@ -251,7 +253,7 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 		for(Widget node : graph.nodes().keySet()) {
 			IGraphProvider.NodeData nodeData = graph.nodes().get(node);
 			Vector2f velocity = nodeData.velocity();
-			if(velocity.length() < 0.025f) {
+			if(velocity.length() < 0.035f) {
 				// If the velocity is negligible, we can skip updating the position
 				continue;
 			}
@@ -280,11 +282,46 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 		}
 	}
 
+	private void integrateOrbits(IGraphProvider graph) {
+		// Integrate the orbits of the nodes
+
+		Vector2f center = new Vector2f(512, 512); // Center of the canvas
+		for(Widget node : graph.nodes().keySet()) {
+			if(node instanceof CableIntersectionWidget) {
+				// If the node is a cable intersection, skip it
+				continue;
+			}
+
+			Vector2f position = new Vector2f(graph.nodes().get(node).position());
+			Vector2f velocity = new Vector2f(graph.nodes().get(node).velocity());
+
+			Vector2f direction = new Vector2f(position).sub(center);
+			float distance = direction.length();
+			if(distance < 0.1f) {
+				// If the distance is zero, skip this node to avoid division by zero
+				continue;
+			}
+
+			direction.normalize();
+			// Calculate the new velocity based on the orbit
+			float orbitSpeed = orbitalStrength * 0.12f * (1.0f - Math.min(distance / 512.0f, 1.0f)); // Adjust the orbit speed based on distance from center
+			Vector2f orbitVelocity = new Vector2f(-direction.y * orbitSpeed, direction.x * orbitSpeed);
+			// Combine the current velocity with the orbit velocity
+			velocity.add(orbitVelocity);
+			// Update the node's velocity
+			graph.setNodeVelocity(node, velocity);
+		}
+	}
+
 	@Override
 	public void updatePositions(IGraphProvider graph) {
 		integrateCanvasBorders(graph);
 		integrateMinDistance(graph, 50.0f, 0.0005f);
 		integrateEdges(graph);
+		orbitalStrength -= 0.015f;
+		if(orbitalStrength > 0) {
+			integrateOrbits(graph);
+		}
 		//avoidNodesOnEdges(graph);
 		//avoidCrossingEdges(graph);
 		applyForces(graph);
