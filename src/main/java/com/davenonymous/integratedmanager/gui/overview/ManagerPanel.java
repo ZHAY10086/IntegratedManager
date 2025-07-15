@@ -18,12 +18,10 @@ import com.davenonymous.integratedmanager.lib.gui.widgets.graph.AbstractGraphPro
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphAlgorithms;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphHelpers;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.ConstrainedGraphEdge;
-import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.IGraphEdge;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.LineStyle;
 import com.davenonymous.integratedmanager.setup.config.ClientGraphConfig;
 import com.davenonymous.integratedmanager.setup.config.DebugConfig;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import org.cyclops.integrateddynamics.RegistryEntries;
@@ -45,6 +43,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByEnergyChannelId;
 	Map<Integer, CableIntersectionWidget> cableIntersectionWidgets;
 	Map<Integer, OmniIntersectionWidget> omniIntersectionWidgets;
+	Map<BlockPos, PartTargetWidget> partTargetWidgets = new HashMap<>();
 
 	Widget selectedWidget = null;
 	List<Widget> selectedDescendants;
@@ -91,14 +90,19 @@ public class ManagerPanel extends WidgetPanningPanel {
 
 
 		if(!part.targetStack.isEmpty()) {
-			PartTargetWidget partTargetWidget = new PartTargetWidget(part);
-			partTargetWidget.setPosition(initialX + 16, initialY + 16);
-			nodeGraph.add(partTargetWidget);
+			if(!this.partTargetWidgets.containsKey(part.targetPos)) {
+				PartTargetWidget partTargetWidget = new PartTargetWidget(part);
+				partTargetWidget.setPosition(initialX + 16, initialY + 16);
+				nodeGraph.add(partTargetWidget);
+				this.partTargetWidgets.put(part.targetPos, partTargetWidget);
+			}
+
+			PartTargetWidget partTargetWidget = this.partTargetWidgets.get(part.targetPos);
 			ConstrainedGraphEdge edge;
 			if(part.writer) {
-				edge = ConstrainedGraphEdge.createMaxDistanceEdge(partWidget, partTargetWidget, 24.0f);
+				edge = ConstrainedGraphEdge.createMaxDistanceEdge(partWidget, partTargetWidget, 128f);
 			} else {
-				edge = ConstrainedGraphEdge.createMaxDistanceEdge(partTargetWidget, partWidget, 24.0f);
+				edge = ConstrainedGraphEdge.createMaxDistanceEdge(partTargetWidget, partWidget, 128f);
 			}
 			edge.setShouldRender(true);
 			edge.setStyle(LineStyle.ARROW);
@@ -199,6 +203,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 		this.selectedAncestors = new ArrayList<>();
 		this.cableIntersectionWidgets = new HashMap<>();
 		this.omniIntersectionWidgets = new HashMap<>();
+		this.partTargetWidgets = new HashMap<>();
 
 		this.nodeGraph = new WidgetNodeGraph(GraphAlgorithms.INTEGRATE_THEN_APPLY.get());
 		this.nodeGraph.setSize(1024, 1024);
