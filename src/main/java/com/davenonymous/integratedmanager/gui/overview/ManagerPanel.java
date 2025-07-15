@@ -6,10 +6,7 @@ import com.davenonymous.integratedmanager.gui.NodeUpdateEvent;
 import com.davenonymous.integratedmanager.gui.search.ElementSearchables;
 import com.davenonymous.integratedmanager.gui.search.SearchIndex;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
-import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
-import com.davenonymous.integratedmanager.integrated.common.PartData;
-import com.davenonymous.integratedmanager.integrated.common.TileData;
-import com.davenonymous.integratedmanager.integrated.common.VariableData;
+import com.davenonymous.integratedmanager.integrated.common.*;
 import com.davenonymous.integratedmanager.lib.gui.ColorHelper;
 import com.davenonymous.integratedmanager.lib.gui.event.MouseClickEvent;
 import com.davenonymous.integratedmanager.lib.gui.event.WidgetEventResult;
@@ -17,14 +14,19 @@ import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetNodeGraph;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetPanningPanel;
+import com.davenonymous.integratedmanager.lib.gui.widgets.graph.AbstractGraphProvider;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphAlgorithms;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.GraphHelpers;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.ConstrainedGraphEdge;
+import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.IGraphEdge;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.LineStyle;
 import com.davenonymous.integratedmanager.setup.config.ClientGraphConfig;
 import com.davenonymous.integratedmanager.setup.config.DebugConfig;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import org.cyclops.integrateddynamics.RegistryEntries;
 import org.joml.Vector2f;
 
 import java.util.*;
@@ -41,6 +43,8 @@ public class ManagerPanel extends WidgetPanningPanel {
 	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByItemChannelId;
 	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByFluidChannelId;
 	Map<Integer, List<NodeWidget<NetworkElementData>>> elementsByEnergyChannelId;
+	Map<Integer, CableIntersectionWidget> cableIntersectionWidgets;
+	Map<Integer, OmniIntersectionWidget> omniIntersectionWidgets;
 
 	Widget selectedWidget = null;
 	List<Widget> selectedDescendants;
@@ -193,6 +197,8 @@ public class ManagerPanel extends WidgetPanningPanel {
 		this.elementsByEnergyChannelId = new HashMap<>();
 		this.selectedDescendants = new ArrayList<>();
 		this.selectedAncestors = new ArrayList<>();
+		this.cableIntersectionWidgets = new HashMap<>();
+		this.omniIntersectionWidgets = new HashMap<>();
 
 		this.nodeGraph = new WidgetNodeGraph(GraphAlgorithms.INTEGRATE_THEN_APPLY.get());
 		this.nodeGraph.setSize(1024, 1024);
@@ -228,7 +234,7 @@ public class ManagerPanel extends WidgetPanningPanel {
 				}
 
 				this.fullDataReceived = true;
-				int elementSize = 48;
+				int elementSize = 96;
 				Vector2f center = new Vector2f(
 					(nodeGraph.width / 2.0f),
 					(nodeGraph.height / 2.0f)
@@ -236,11 +242,70 @@ public class ManagerPanel extends WidgetPanningPanel {
 
 				var spiral = new GraphHelpers.SpiralIterator(elementSize, center);
 
+				Map<Integer, CableIntersectionWidget> cableIntersections = new HashMap<>();
+				for(int pathNodeId : NetworkData.cache().paths.keySet()) {
+					var cableWidget = new CableIntersectionWidget(pathNodeId);
+					cableWidget.setPosition(spiral.next());
+					List<NetworkElementData> elementDatas = NetworkData.cache().elementDataByPathId.get(pathNodeId);
+					if(elementDatas != null && elementDatas.size() == 1) {
+						var element = elementDatas.getFirst();
+						if(element.tileData != null) {
+							if(element.tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
+								cableWidget.setIcon(new ItemStack(RegistryEntries.BLOCK_VARIABLE_STORE.get()));
+							} else if(element.tileData.blockEntityClass.equals("BlockEntityProxy")) {
+								cableWidget.setIcon(new ItemStack(RegistryEntries.BLOCK_PROXY.get()));
+							}
+						}
+					}
+
+					nodeGraph.add(cableWidget);
+					cableIntersections.put(pathNodeId, cableWidget);
+					cableIntersectionWidgets.put(pathNodeId, cableWidget);
+				}
+
+				for(int pathNodeId : NetworkData.cache().paths.keySet()) {
+					var connections = NetworkData.cache().paths.get(pathNodeId);
+					CableIntersectionWidget intersectionWidget = cableIntersections.get(pathNodeId);
+					for(Integer neighborId : connections.keySet()) {
+						IntegratedConnectionType connectionType = connections.get(neighborId);
+						if(connectionType == null) {
+							continue; // No connection type, skip
+						}
+
+						CableIntersectionWidget neighborWidget = cableIntersections.get(neighborId);
+						if(neighborWidget == null) {
+							continue; // No neighbor widget, skip
+						}
+
+						ConstrainedGraphEdge edge = ConstrainedGraphEdge.createMaxDistanceEdge(intersectionWidget, neighborWidget, 50.0f);
+						edge.setShouldRender(true);
+						edge.setStyle(LineStyle.INTEGRATED_DYNAMICS_CABLE);
+						edge.setColorSource(0xFFFFFFFF);
+						if(connectionType == IntegratedConnectionType.MONO) {
+							edge.setStyle(LineStyle.INTEGRATED_DYNAMICS_MONO);
+						}
+						nodeGraph.addEdge(edge);
+					}
+				}
+
 				var elements = NetworkData.cache().elementDataList;
 				var sortedElements = elements.stream().sorted(Comparator.comparing(networkElementData -> networkElementData.position)).toList();
 				for(NetworkElementData element : sortedElements) {
+					if(element.partData != null && element.partData.omniId != -1) {
+						if(!omniIntersectionWidgets.containsKey(element.partData.omniId)) {
+							OmniIntersectionWidget omniIntersectionWidget = new OmniIntersectionWidget(element.partData.omniId);
+							omniIntersectionWidget.setPosition(spiral.next());
+							omniIntersectionWidgets.put(element.partData.omniId, omniIntersectionWidget);
+							nodeGraph.add(omniIntersectionWidget);
+						}
+					}
+				}
+
+
+
+				for(NetworkElementData element : sortedElements) {
 					Widget elementWidget = null;
-					if(element.partData != null) {
+					if(element.partData != null && !element.partData.partClassName.equals("PartTypeConnectorMonoDirectional")) {
 						Vector2f bestPos = spiral.next();
 						elementWidget = addPartWidget(element, (int) bestPos.x, (int) bestPos.y);
 					} else if(element.tileData != null) {
@@ -248,7 +313,29 @@ public class ManagerPanel extends WidgetPanningPanel {
 						elementWidget = addTileWidget(element, (int) bestPos.x, (int) bestPos.y);
 					}
 
+					if(element.partData != null && element.partData.omniId != -1) {
+						OmniIntersectionWidget omniIntersectionWidget = omniIntersectionWidgets.get(element.partData.omniId);
+						if(omniIntersectionWidget != null && elementWidget != null) {
+							var edge = ConstrainedGraphEdge.createMaxDistanceEdge(omniIntersectionWidget, elementWidget, 192.0f);
+							edge.setShouldRender(true);
+							edge.setStyle(LineStyle.INTEGRATED_DYNAMICS_MONO);
+							edge.setColorSource(ColorHelper.COLOR_PURPLE);
+							nodeGraph.addEdge(edge);
+						}
+					}
+
 					if(elementWidget != null) {
+						if(element.pathId != -1 && nodeGraph instanceof AbstractGraphProvider nodeGraph) {
+							CableIntersectionWidget cableIntersectionWidget = cableIntersectionWidgets.get(element.pathId);
+
+							var edge = ConstrainedGraphEdge.createConstrainedEdge(cableIntersectionWidget, elementWidget, 32.0f);
+							edge.setShouldRender(true);
+							edge.setStyle(LineStyle.INTEGRATED_DYNAMICS_CABLE);
+							edge.setColorSource(0x80FFFFFF);
+							nodeGraph.addEdge(edge);
+						}
+
+
 						element.updateSearchIndex(elementWidget);
 						elementWidget.addListener(MouseClickEvent.class, (event1, widget1) -> {
 							if(event1.button != 0 || getGUI().isShiftDown()) { // Left click + shift (scancode=340)
@@ -392,26 +479,6 @@ public class ManagerPanel extends WidgetPanningPanel {
 									IntegratedManager.LOGGER.warn("Proxy variable widget for ID {} not found, this is likely a bug.", proxiedVariable.id);
 								}
 							}
-						}
-					}
-				}
-
-				if(ClientGraphConfig.showCables) {
-					for(int channelId : elementsBySupplyChannelId.keySet()) {
-						List<NodeWidget<NetworkElementData>> channelElements = elementsBySupplyChannelId.get(channelId);
-						if(channelElements.size() < 2) {
-							continue; // No edges to draw
-						}
-
-						for(int i = 0; i < channelElements.size() - 1; i++) {
-							NodeWidget<NetworkElementData> from = channelElements.get(i);
-							NodeWidget<NetworkElementData> to = channelElements.get(i + 1);
-
-							ConstrainedGraphEdge edge = ConstrainedGraphEdge.createConstrainedEdge(from, to, 32.0f);
-							edge.setStyle(LineStyle.INTEGRATED_DYNAMICS_CABLE);
-							edge.setShouldRender(true);
-							edge.setColorSource(0xFFFFFFFF);
-							nodeGraph.addEdge(edge);
 						}
 					}
 				}

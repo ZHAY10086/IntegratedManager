@@ -76,7 +76,7 @@ public class NodeWidget<T> extends WidgetPanelWithValue<T> {
 				lastMouseY = event.y;
 
 				Vector2f direction = new Vector2f(deltaX, deltaY);
-				nodeGraph.setNodeVelocity(this, new Vector2f(direction).mul(1f));
+				nodeGraph.setNodeVelocity(this, new Vector2f(direction).mul(0.6f));
 
 				return WidgetEventResult.HANDLED;
 			});

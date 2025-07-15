@@ -43,13 +43,14 @@ import org.cyclops.integrateddynamics.api.part.aspect.property.IAspectPropertyTy
 import org.cyclops.integrateddynamics.api.part.read.IPartTypeReader;
 import org.cyclops.integrateddynamics.api.part.write.IPartStateWriter;
 import org.cyclops.integrateddynamics.api.part.write.IPartTypeWriter;
+import org.cyclops.integrateddynamics.api.path.IPathElement;
+import org.cyclops.integrateddynamics.api.path.ISidedPathElement;
 import org.cyclops.integrateddynamics.core.network.TileNetworkElement;
 import org.cyclops.integrateddynamics.core.part.write.PartStateWriterBase;
+import org.cyclops.integrateddynamics.part.PartTypeConnectorOmniDirectional;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class NetworkAnalysis {
 	public static final BlockCapability<INetworkCarrier, Direction> NETWORK_CARRIER = Capabilities.NetworkCarrier.BLOCK;
@@ -61,10 +62,12 @@ public class NetworkAnalysis {
 	IPartNetwork partNetwork;
 
 	int networkId;
-	int usedVariables;
-	int freeVariables;
 
 	public List<NetworkElementData> networkElements;
+	public Map<DimPos, Integer> pathIds;
+	private Map<BlockPos, Map<Direction, INetworkElement>> networkElementsByPath;
+	private Map<BlockPos, Map<Direction, NetworkElementData>> networkElementDataByPath;
+	private Map<Integer, Map<Integer, IntegratedConnectionType>> paths;
 
 	public NetworkAnalysis(ServerLevel level, BlockPos pos, Direction side) {
 		this.pos = pos;
@@ -98,9 +101,102 @@ public class NetworkAnalysis {
 		partNetwork = optPartNetwork.get();
 	}
 
+	private int getPathId(IPathElement pathElement) {
+		DimPos pathElementPos = pathElement.getPosition();
+		return pathIds.computeIfAbsent(pathElementPos, k -> pathIds.size());
+	}
+
+	private int getPathId(ISidedPathElement sidedPathElement) {
+		return getPathId(sidedPathElement.getPathElement());
+	}
+
+	private void addToCableNetwork(INetworkElement networkElement, NetworkElementData data) {
+		Optional<IPathElement> pathCap = getNetworkElementCapability(networkElement, Capabilities.PathElement.BLOCK);
+		if (pathCap.isEmpty()) {
+			return;
+		}
+
+		IPathElement pathElement = pathCap.get();
+		data.pathId = getPathId(pathElement);
+	}
+
+
+	private void findConnectedPathNodes(INetworkElement networkElement, NetworkElementData data) {
+		int pathId = data.pathId;
+
+		if (!(networkElement instanceof IPositionedNetworkElement positionedNetworkElement)) {
+			return;
+		}
+
+		var dimPos = positionedNetworkElement.getPosition();
+
+		Optional<IPathElement> pathCap = getNetworkElementCapability(networkElement, Capabilities.PathElement.BLOCK);
+		if (pathCap.isEmpty()) {
+			return;
+		}
+
+		IPathElement pathElement = pathCap.get();
+
+		Set<DimPos> visitedPositions = new HashSet<>();
+		Queue<ISidedPathElement> queue = new ArrayDeque<>();
+		visitedPositions.add(dimPos);
+		pathElement.getReachableElements().forEach(queue::offer);
+
+		while (!queue.isEmpty()) {
+			ISidedPathElement current = queue.poll();
+			IPathElement currentElement = current.getPathElement();
+
+			DimPos neighborPosition = current.getPathElement().getPosition();
+			Map<Direction, NetworkElementData> elementsAtPosition = networkElementDataByPath.getOrDefault(neighborPosition.getBlockPos(), Collections.emptyMap());
+			NetworkElementData neighborNetworkElement = elementsAtPosition.get(current.getSide());
+
+			int neighborPathId = pathIds.getOrDefault(neighborPosition, -1);
+			if (neighborPathId != -1) {
+				boolean weAreMonoRadio = data.partData != null && data.partData.partClassName.equals("PartTypeConnectorMonoDirectional");
+				boolean neighborIsMonoRadio = neighborNetworkElement != null && neighborNetworkElement.partData != null &&
+					neighborNetworkElement.partData.partClassName.equals("PartTypeConnectorMonoDirectional");
+
+				boolean weAreOmniRadio = data.partData != null && data.partData.partClassName.equals("PartTypeConnectorOmniDirectional");
+				boolean neighborIsOmniRadio = neighborNetworkElement != null && neighborNetworkElement.partData != null &&
+					neighborNetworkElement.partData.partClassName.equals("PartTypeConnectorOmniDirectional");
+
+				if(weAreOmniRadio || neighborIsOmniRadio) {
+					continue;
+				}
+
+				if(paths.containsKey(pathId) && paths.get(pathId).containsKey(neighborPathId)) {
+					continue;
+				}
+
+				if(paths.containsKey(neighborPathId) && paths.get(neighborPathId).containsKey(pathId)) {
+					continue;
+				}
+
+				if(current.getSide().getOpposite() == data.side && weAreMonoRadio && neighborIsMonoRadio) {
+					paths.computeIfAbsent(pathId, k -> new HashMap<>()).put(neighborPathId, IntegratedConnectionType.MONO);
+					data.connections.put(neighborPathId, IntegratedConnectionType.MONO);
+				} else {
+					paths.computeIfAbsent(pathId, k -> new HashMap<>()).put(neighborPathId, IntegratedConnectionType.CABLE);
+					data.connections.put(neighborPathId, IntegratedConnectionType.CABLE);
+				}
+			} else {
+				for (ISidedPathElement neighbour : currentElement.getReachableElements()) {
+					DimPos neighbourPos = neighbour.getPathElement().getPosition();
+					if (visitedPositions.add(neighbourPos)) { // Adds and returns true if not already present.
+						queue.offer(neighbour);
+					}
+				}
+			}
+		}
+	}
+
+
 	public void runAnalysis() {
  		this.networkId = network.hashCode();
 		this.networkElements = new ArrayList<>();
+		this.pathIds = new HashMap<>();
+		this.networkElementsByPath = new HashMap<>();
+		this.networkElementDataByPath = new HashMap<>();
 
 		DataComponentType<?> facadeComponentType = BuiltInRegistries.DATA_COMPONENT_TYPE.get(
 			ResourceLocation.fromNamespaceAndPath("integrateddynamics", "variable_facade"));
@@ -119,15 +215,23 @@ public class NetworkAnalysis {
 				networkElementData.id = identifiableNetworkElement.getId();
 			}
 
-			if (networkElement instanceof IPositionedNetworkElement positionedNetworkElement) {
-				var dimPos = positionedNetworkElement.getPosition();
-				networkElementData.position = dimPos.getBlockPos();
-			}
-
 			if (networkElement instanceof ISidedNetworkElement sidedNetworkElement) {
 				networkElementData.side = sidedNetworkElement.getSide();
 			}
 
+			if (networkElement instanceof IPositionedNetworkElement positionedNetworkElement) {
+				var dimPos = positionedNetworkElement.getPosition();
+				networkElementData.position = dimPos.getBlockPos();
+				networkElementsByPath.computeIfAbsent(
+					dimPos.getBlockPos(),
+					k -> new HashMap<>()
+				).put(networkElementData.side, networkElement);
+
+				networkElementDataByPath.computeIfAbsent(
+					dimPos.getBlockPos(),
+					k -> new HashMap<>()
+				).put(networkElementData.side, networkElementData);
+			}
 
 			if(networkElement instanceof TileNetworkElement<?> tileNetworkElement) {
 				var tileData = new TileData();
@@ -242,8 +346,11 @@ public class NetworkAnalysis {
 					}
 				}
 
-				networkElementData.partData = partData;
+				if(partNetworkElement.getPartState() instanceof PartTypeConnectorOmniDirectional.State omniState) {
+					partData.omniId = omniState.getGroupId();
+				}
 
+				networkElementData.partData = partData;
 				for(INetworkAnalyzer analyzer : Analyzers.analyzers) {
 					analyzer.visitNetworkPart(partNetworkElement, part, networkElementData, network, partNetwork);
 				}
@@ -253,12 +360,36 @@ public class NetworkAnalysis {
 				analyzer.visitNetworkElement(networkElement, networkElementData, network, partNetwork);
 			}
 
+			addToCableNetwork(networkElement, networkElementData);
 			networkElements.add(networkElementData);
+		}
+
+		paths = new HashMap<>();
+		for(NetworkElementData data : networkElements) {
+			if(data.position == null) {
+				continue; // Skip elements without a position
+			}
+
+			var elementsAtPosition = networkElementsByPath.get(data.position);
+			if(elementsAtPosition == null) {
+				continue; // Skip if no elements at this position
+			}
+
+			INetworkElement networkElement = elementsAtPosition.get(data.side);
+			if(networkElement == null) {
+				continue; // Skip if no element for this side
+			}
+
+			if(networkElement instanceof IPartNetworkElement partNetworkElement && partNetworkElement.getPart() instanceof PartTypeConnectorOmniDirectional) {
+				continue; // Skip omni-directional connectors, they are not part of the cable network
+			}
+
+			findConnectedPathNodes(networkElement, data);
 		}
 	}
 
 	public void sendAnalysis(ServerPlayer player) {
-		var masterInfo = new NetworkMasterInfo(pos, networkId, networkElements.size(), usedVariables, freeVariables);
+		var masterInfo = new NetworkMasterInfo(pos, networkId, networkElements.size());
 		PacketDistributor.sendToPlayer(player, masterInfo);
 		for(var element : networkElements) {
 			PacketDistributor.sendToPlayer(player, new NetworkElementInfo(element));

@@ -118,6 +118,10 @@ public class NetworkPartWidget extends NodeWidget<NetworkElementData> {
 				StringTooltipComponent.cyan(I18n.get("aspect.aspecttypes.integrateddynamics.integer.channel")),
 				WrappedStringTooltipComponent.gray(String.valueOf(data.channelId))
 			);
+			table.addRow(
+				StringTooltipComponent.cyan("Path ID:"),
+				WrappedStringTooltipComponent.gray(String.valueOf(data.pathId))
+			);
 			partWidget.addTooltipElement(
 				LabeledLineSeparatorTooltipComponent.advancedInfos(partWidget),
 				table

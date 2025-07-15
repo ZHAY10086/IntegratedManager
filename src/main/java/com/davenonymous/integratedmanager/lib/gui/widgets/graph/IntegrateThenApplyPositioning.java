@@ -154,17 +154,20 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 
 			float sourceAttraction = edge.attraction(source, target);
 			float targetAttraction = edge.attraction(target, source);
-			Vector2f direction = new Vector2f(target.x - source.x, target.y - source.y).normalize();
+			Vector2f direction = new Vector2f(target.x - source.x, target.y - source.y);
+
 			if(direction.length() < 0.01f) {
 				// If the direction is too small, skip this edge to avoid division by zero
 				continue;
 			}
 
-			Vector2f sourceForces = new Vector2f(graph.nodes().get(source).velocity()).mul(0.994f);
-			Vector2f targetForces = new Vector2f(graph.nodes().get(target).velocity()).mul(0.994f);
+			Vector2f normalizedDirection = new Vector2f(direction).normalize();
 
-			Vector2f sourceVector = new Vector2f(direction).mul(sourceAttraction * -0.0003f);
-			Vector2f targetVector = new Vector2f(direction).mul(targetAttraction * 0.0003f);
+			Vector2f sourceForces = new Vector2f(graph.nodes().get(source).velocity());
+			Vector2f targetForces = new Vector2f(graph.nodes().get(target).velocity());
+
+			Vector2f sourceVector = new Vector2f(normalizedDirection).mul(sourceAttraction * -0.0003f);
+			Vector2f targetVector = new Vector2f(normalizedDirection).mul(targetAttraction * 0.0003f);
 
 			graph.setNodeVelocity(source, sourceForces.add(sourceVector));
 			graph.setNodeVelocity(target, targetForces.add(targetVector));
@@ -205,8 +208,18 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 		// Integrate the minimum distance constraint between nodes
 		// This is the most naive approach possible and can easily be optimized py partitioning the canvas into a grid
 		for(Widget nodeA : graph.nodes().keySet()) {
+			if(!nodeA.isVisible()) {
+				// If the node is not visible, skip it
+				continue;
+			}
+
 			Vector2f positionA = new Vector2f(graph.nodes().get(nodeA).position());
 			for(Widget nodeB : graph.nodes().keySet()) {
+				if(!nodeB.isVisible()) {
+					// If the node is not visible, skip it
+					continue;
+				}
+
 				if(nodeA == nodeB) {
 					continue; // Skip self-comparison
 				}
@@ -246,13 +259,29 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 		}
 	}
 
+	private void dampenVelocities(IGraphProvider graph) {
+		// Dampen the velocities of the nodes to prevent them from moving too fast
+		for(Widget node : graph.nodes().keySet()) {
+			Vector2f velocity = graph.nodes().get(node).velocity();
+			if(velocity.length() < 0.00001f) {
+				// If the velocity is negligible, we can skip damping
+				continue;
+			}
+
+			// Apply damping
+			velocity.mul(0.99f);
+			graph.setNodeVelocity(node, velocity);
+		}
+	}
+
 	@Override
 	public void updatePositions(IGraphProvider graph) {
-		integrateEdges(graph);
 		integrateCanvasBorders(graph);
-		integrateMinDistance(graph, 64.0f, 0.0005f);
+		integrateMinDistance(graph, 50.0f, 0.0005f);
+		integrateEdges(graph);
 		//avoidNodesOnEdges(graph);
 		//avoidCrossingEdges(graph);
 		applyForces(graph);
+		dampenVelocities(graph);
 	}
 }

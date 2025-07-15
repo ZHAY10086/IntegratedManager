@@ -4,11 +4,9 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 public class ClientGraphConfig {
 	public final ModConfigSpec.BooleanValue SHOW_PROXIES;
-	public final ModConfigSpec.BooleanValue SHOW_CABLES;
 	public final ModConfigSpec.BooleanValue SHOW_RECIPE_VARIABLES;
 
 	public static boolean showProxies;
-	public static boolean showCables;
 	public static boolean showRecipeVariables;
 
 	public ClientGraphConfig(ModConfigSpec.Builder builder) {
@@ -18,11 +16,6 @@ public class ClientGraphConfig {
 				.comment("Show proxies in the network graph")
 				.translation("integratedmanager.configuration.clientgraph.show_proxies")
 				.define("showProxies", false);
-
-		SHOW_CABLES = builder
-				.comment("Show cables in the network graph")
-				.translation("integratedmanager.configuration.clientgraph.show_cables")
-				.define("showCables", false);
 
 		SHOW_RECIPE_VARIABLES = builder
 				.comment("Show recipe variables in the network graph")
@@ -34,7 +27,6 @@ public class ClientGraphConfig {
 
 	public void load() {
 		showProxies = SHOW_PROXIES.get();
-		showCables = SHOW_CABLES.get();
 		showRecipeVariables = SHOW_RECIPE_VARIABLES.get();
 	}
 }

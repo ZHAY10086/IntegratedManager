@@ -1,6 +1,5 @@
 package com.davenonymous.integratedmanager.integrated.common;
 
-import com.davenonymous.integratedmanager.gui.overview.NodeWidget;
 import com.davenonymous.integratedmanager.gui.search.SearchIndex;
 import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
@@ -32,6 +31,7 @@ public class PartData {
 	public String partClassName = "UnknownPartClass";
 	public String translationKey = "";
 	public List<String> errors = new ArrayList<>();
+	public int omniId = -1;
 
 	public boolean onEnergyChannel = false;
 	public boolean onItemChannel = false;
@@ -51,6 +51,7 @@ public class PartData {
 		this.onEnergyChannel = buf.readBoolean();
 		this.onItemChannel = buf.readBoolean();
 		this.onFluidChannel = buf.readBoolean();
+		this.omniId = buf.readInt();
 
 		if (buf.readBoolean()) {
 			this.partClassName = buf.readUtf(256);
@@ -119,6 +120,7 @@ public class PartData {
 		buf.writeBoolean(onEnergyChannel);
 		buf.writeBoolean(onItemChannel);
 		buf.writeBoolean(onFluidChannel);
+		buf.writeInt(omniId);
 
 		if (partClassName != null && !partClassName.isEmpty()) {
 			buf.writeBoolean(true);

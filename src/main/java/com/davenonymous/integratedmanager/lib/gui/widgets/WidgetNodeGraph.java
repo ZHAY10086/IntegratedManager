@@ -89,6 +89,11 @@ public class WidgetNodeGraph extends AbstractGraphProvider {
 				continue;
 			}
 
+			if(!source.isVisible() || !target.isVisible()) {
+				// If either source or target is not visible, skip this edge
+				continue;
+			}
+
 			int sourceX = source.x + source.width / 2;
 			int sourceY = source.y + source.height / 2;
 			int targetX = target.x + target.width / 2;
@@ -124,6 +129,9 @@ public class WidgetNodeGraph extends AbstractGraphProvider {
 						GUIHelper.drawFatLine(guiGraphics, sourceX, sourceY, targetX, targetY, edge.getStyle().lineThickness, edge.colorSource());
 						break;
 					case INTEGRATED_DYNAMICS_CABLE:
+						GUIHelper.drawTiledLine(guiGraphics, sourceX, sourceY, targetX, targetY, edge.getStyle().sprite, edge.colorSource(), edge.getStyle().spacing);
+						break;
+					case INTEGRATED_DYNAMICS_MONO:
 						GUIHelper.drawTiledLine(guiGraphics, sourceX, sourceY, targetX, targetY, edge.getStyle().sprite, edge.colorSource(), edge.getStyle().spacing);
 						break;
 				}

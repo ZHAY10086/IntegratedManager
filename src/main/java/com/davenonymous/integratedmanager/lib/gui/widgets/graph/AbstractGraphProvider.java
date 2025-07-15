@@ -10,7 +10,7 @@ import java.util.*;
 
 public class AbstractGraphProvider extends WidgetPanel implements IGraphProvider {
 	private final IGraphAlgorithm algorithm;
-	private final List<IGraphEdge> edges = new ArrayList<>();
+	private List<IGraphEdge> edges = new ArrayList<>();
 	private Map<Widget, NodeData> nodeData = new HashMap<>();
 	private boolean freezeActivity = false;
 	private Map<Widget, List<Widget>> nodeDescendants = new HashMap<>();
@@ -28,6 +28,11 @@ public class AbstractGraphProvider extends WidgetPanel implements IGraphProvider
 	public void add(Widget widget) {
 		super.add(widget);
 		nodeData.put(widget, new NodeData(widget));
+	}
+
+	@Override
+	public void remove(Widget widget) {
+		super.remove(widget);
 	}
 
 	@Override
@@ -49,6 +54,9 @@ public class AbstractGraphProvider extends WidgetPanel implements IGraphProvider
 		return this.edges;
 	}
 
+	public List<IGraphEdge> edges(Widget node) {
+		return this.edges.stream().filter(edge -> edge.source() == node || edge.target() == node).toList();
+	}
 
 	public AbstractGraphProvider addEdge(IGraphEdge edge) {
 		var source = edge.source();
@@ -100,7 +108,7 @@ public class AbstractGraphProvider extends WidgetPanel implements IGraphProvider
 			this.algorithm.updatePositions(this);
 			for(Widget node : this.nodes().keySet()) {
 				float velocity = this.getNodeVelocity(node).length();
-				if(velocity > 0.025f) {
+				if(velocity > 0.035f) {
 					// If any node has a velocity greater than a small threshold, we consider the graph not settled
 					iterations++;
 					continue SETTLE;
@@ -110,9 +118,9 @@ public class AbstractGraphProvider extends WidgetPanel implements IGraphProvider
 		} while (iterations < maxIterations);
 
 		if (iterations >= maxIterations) {
-			IntegratedManager.LOGGER.warn("Node graph did not settle after {} iterations", maxIterations);
+			IntegratedManager.LOGGER.debug("Node graph did not settle after {} iterations", maxIterations);
 		} else {
-			IntegratedManager.LOGGER.info("Node graph settled after {} iterations", iterations);
+			IntegratedManager.LOGGER.debug("Node graph settled after {} iterations", iterations);
 		}
 	}
 

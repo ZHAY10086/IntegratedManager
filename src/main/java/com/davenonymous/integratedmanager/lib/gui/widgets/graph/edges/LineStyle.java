@@ -10,6 +10,7 @@ public enum LineStyle {
 	MEDIUM(2.0f, 0, 0),
 	THICK(3.0f, 0, 0),
 	INTEGRATED_DYNAMICS_CABLE(new GUISpriteInfo(Icons.guiIDCable, 6, 4)),
+	INTEGRATED_DYNAMICS_MONO(new GUISpriteInfo(Icons.guiIDCable, 6, 4), 6),
 	;
 
 

@@ -38,12 +38,19 @@ public record NetworkElementInfo(NetworkElementData data) implements CustomPacke
 		if(haveAllParts) {
 			NetworkData.cache().inferValues();
 
+			int elementCount = NetworkData.cache().elementDataList.size();
+			int variableCount = NetworkData.cache().variableDataById.size();
+			int pathCount = NetworkData.cache().paths.values().stream().reduce(0, (sum, map) -> sum + map.size(), Integer::sum);
+			IntegratedManager.LOGGER.debug("All elements received for network ID {}, Elements: {}, Variables: {}, Paths: {}",
+				NetworkData.cache().networkId,
+				elementCount,
+				variableCount,
+				pathCount
+			);
+
 			if(Minecraft.getInstance().screen instanceof ManagerOverview managerScreen) {
 				managerScreen.getOrCreateGui().fireEvent(new AllElementsReceivedEvent());
 			}
-
-			IntegratedManager.LOGGER.debug("All element received for network ID {}, total: {}",
-					NetworkData.cache().networkId, NetworkData.cache().elementDataList.size());
 		}
 	}
 }

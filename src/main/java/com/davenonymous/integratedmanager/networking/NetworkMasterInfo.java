@@ -12,7 +12,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record NetworkMasterInfo(BlockPos pos, int networkId, int partCount, int usedVariables, int freeVariables) implements CustomPacketPayload {
+public record NetworkMasterInfo(BlockPos pos, int networkId, int partCount) implements CustomPacketPayload {
 	public static final Type<NetworkMasterInfo> TYPE = new Type<>(IntegratedManager.resource("network_master_info"));
 
 	@Override
@@ -24,8 +24,6 @@ public record NetworkMasterInfo(BlockPos pos, int networkId, int partCount, int 
 			BlockPos.STREAM_CODEC, NetworkMasterInfo::pos,
 			ByteBufCodecs.VAR_INT, NetworkMasterInfo::networkId,
 			ByteBufCodecs.VAR_INT, NetworkMasterInfo::partCount,
-			ByteBufCodecs.VAR_INT, NetworkMasterInfo::usedVariables,
-			ByteBufCodecs.VAR_INT, NetworkMasterInfo::freeVariables,
 			NetworkMasterInfo::new
 	);
 
@@ -34,13 +32,10 @@ public record NetworkMasterInfo(BlockPos pos, int networkId, int partCount, int 
 		NetworkData.cache().masterPosition = message.pos();
 		NetworkData.cache().networkId = message.networkId();
 		NetworkData.cache().totalParts = message.partCount();
-		NetworkData.cache().usedVariables = message.usedVariables();
-		NetworkData.cache().freeVariables = message.freeVariables();
 		if(Minecraft.getInstance().screen instanceof ManagerOverview managerScreen) {
 			managerScreen.getOrCreateGui().fireEvent(new GuiDataUpdatedEvent());
 		}
-		IntegratedManager.LOGGER.info("Received network master info: ID={}, Parts={}, Used Variables={}, Free Variables={}",
-				message.networkId(), message.partCount(), message.usedVariables(), message.freeVariables());
+		IntegratedManager.LOGGER.debug("Received network master info: ID={}, Parts={}", message.networkId(), message.partCount());
 
 	}
 }
