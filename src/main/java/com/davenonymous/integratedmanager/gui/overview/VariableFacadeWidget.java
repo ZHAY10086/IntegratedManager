@@ -35,6 +35,29 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 		}
 		variableWidget.setTooltipElements(tooltipComponents);
 
+		if(variable.scriptingPath != null && !variable.scriptingPath.isBlank() && variable.scriptingDisk != -1) {
+			TableTooltipComponent table = new TableTooltipComponent();
+			if(variable.valueData != null && !variable.valueData.stringValue.isBlank()) {
+				table.addRow(
+					StringTooltipComponent.cyan("Member:"),
+					WrappedStringTooltipComponent.green(variable.valueData.stringValue)
+				);
+			}
+
+			table.addRow(
+				StringTooltipComponent.cyan("Path:"),
+				WrappedStringTooltipComponent.green(variable.scriptingPath)
+			);
+			table.addRow(
+				StringTooltipComponent.cyan(I18n.get("gui.integratedscripting.disk") + ":"),
+				WrappedStringTooltipComponent.green(String.valueOf(variable.scriptingDisk))
+			);
+			variableWidget.addTooltipElement(
+				table
+			);
+		}
+
+
 		boolean isValueType = variable.facadeClassName.equals("ValueTypeVariableFacade");
 		if(!isValueType) {
 			TableTooltipComponent table = new TableTooltipComponent();
@@ -114,7 +137,7 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 				);
 			}
 
-			if(table.rows() > 0) {
+			if(table.rows() > 0 && variable.scriptingDisk == -1) {
 				variableWidget.addTooltipElement(
 					new LabeledLineSeparatorTooltipComponent(variableWidget, "IO"),
 					table

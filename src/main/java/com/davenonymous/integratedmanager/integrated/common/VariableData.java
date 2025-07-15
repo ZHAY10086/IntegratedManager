@@ -9,6 +9,8 @@ import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.server.ValueTypeTranslator;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.networking.NetworkHelper;
+import com.davenonymous.integratedmanager.setup.integrated.Analyzers;
+import com.davenonymous.integratedmanager.setup.integrated.INetworkAnalyzer;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -40,7 +42,9 @@ public class VariableData {
 	public List<Integer> referencedPartIds = new ArrayList<>();
 	public int proxyId = -1; // Used for proxy variables, to identify the proxy part
 	public int proxiedVariableId = -1; // Used for proxy variables, to identify the proxied variable
+	public int scriptingDisk = -1; // Used for scripting variables, to identify the disk
 
+	public String scriptingPath;
 	public String facadeClassName = "unknown_facade";
 	public String label;
 	public ResourceLocation type;
@@ -73,6 +77,13 @@ public class VariableData {
 		this.translationKey = buf.readUtf();
 		this.facadeClassName = buf.readUtf();
 		this.proxyId = buf.readVarInt();
+		this.scriptingDisk = buf.readInt();
+
+		if(buf.readBoolean()) {
+			this.scriptingPath = buf.readUtf();
+		} else {
+			this.scriptingPath = null;
+		}
 
 		if(buf.readBoolean()) {
 			this.aspect = AspectData.STREAM_CODEC.decode(buf);
@@ -110,6 +121,15 @@ public class VariableData {
 		buf.writeUtf(translationKey);
 		buf.writeUtf(facadeClassName);
 		buf.writeVarInt(proxyId);
+		buf.writeInt(scriptingDisk);
+
+		if(scriptingPath != null) {
+			buf.writeBoolean(true);
+			buf.writeUtf(scriptingPath);
+		} else {
+			buf.writeBoolean(false);
+		}
+
 		if (aspect != null) {
 			buf.writeBoolean(true);
 			AspectData.STREAM_CODEC.encode(buf, aspect);
@@ -228,7 +248,10 @@ public class VariableData {
 			variableData.valueData = proxiedVariable.valueData;
 			variableData.variableStack = proxiedVariable.variableStack;
 			variableData.translationKey = proxiedVariable.translationKey;
+		}
 
+		for(INetworkAnalyzer analyzer : Analyzers.analyzers) {
+			analyzer.visitVariable(variableFacade, variableData, network, partNetwork);
 		}
 
 		return variableData;

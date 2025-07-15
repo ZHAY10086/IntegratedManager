@@ -1,7 +1,9 @@
 package com.davenonymous.integratedmanager.setup.integrated;
 
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
+import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import org.cyclops.integrateddynamics.api.item.IVariableFacade;
 import org.cyclops.integrateddynamics.api.network.INetwork;
 import org.cyclops.integrateddynamics.api.network.INetworkElement;
 import org.cyclops.integrateddynamics.api.network.IPartNetwork;
@@ -19,5 +21,9 @@ public interface INetworkAnalyzer {
 
 	default void visitNetworkPart(IPartNetworkElement partNetworkElement, IPartType part, NetworkElementData gatheredData, INetwork network, IPartNetwork partNetwork) {
 		// Default implementation does nothing
+	}
+
+	default void visitVariable(IVariableFacade variableFacade, VariableData variableData, INetwork network, IPartNetwork partNetwork) {
+
 	}
 }
