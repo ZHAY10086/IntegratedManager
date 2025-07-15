@@ -1,5 +1,6 @@
 package com.davenonymous.integratedmanager.lib.gui.widgets.graph;
 
+import com.davenonymous.integratedmanager.gui.overview.CableIntersectionWidget;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.lib.gui.widgets.graph.edges.IGraphEdge;
 import org.joml.Vector2f;
@@ -223,6 +224,11 @@ public class IntegrateThenApplyPositioning implements IGraphAlgorithm {
 				if(nodeA == nodeB) {
 					continue; // Skip self-comparison
 				}
+				if(nodeA instanceof CableIntersectionWidget && nodeB instanceof CableIntersectionWidget) {
+					// If both nodes are cable intersections, skip them
+					continue;
+				}
+
 				Vector2f direction = new Vector2f(graph.nodes().get(nodeB).position()).sub(positionA);
 				float distance = direction.length();
 				if(distance <= 0.0001f) {
