@@ -27,6 +27,10 @@ public record NetworkElementInfo(NetworkElementData data) implements CustomPacke
 	);
 
 	public static void handleOnClient(NetworkElementInfo message, IPayloadContext context) {
+		if(!(Minecraft.getInstance().screen instanceof ManagerOverview)) {
+			Minecraft.getInstance().setScreen(new ManagerOverview());
+		}
+
 		NetworkData.cache().addElementData(message.data());
 		if(Minecraft.getInstance().screen instanceof ManagerOverview managerScreen) {
 			managerScreen.getOrCreateGui().fireEvent(new GuiDataUpdatedEvent());

@@ -1,8 +1,6 @@
 package com.davenonymous.integratedmanager.items;
 
-import com.davenonymous.integratedmanager.gui.ManagerOverview;
 import com.davenonymous.integratedmanager.integrated.server.NetworkAnalysis;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -23,16 +21,14 @@ public class ManagerTabletItem extends Item {
 	@Override
 	public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
 		Level level = context.getLevel();
+		BlockPos clickedPos = context.getClickedPos();
 		if(level.isClientSide) {
-			// TODO: Actually check for a network before opening the GUI
-			Minecraft.getInstance().setScreen(new ManagerOverview());
 			return InteractionResult.SUCCESS_NO_ITEM_USED;
 		}
 
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
 		ServerLevel serverLevel = player.serverLevel();
 
-		BlockPos clickedPos = context.getClickedPos();
 		try {
 			var analysis = new NetworkAnalysis(serverLevel, clickedPos, context.getClickedFace());
 			analysis.runAnalysis();
