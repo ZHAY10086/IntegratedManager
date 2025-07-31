@@ -8,6 +8,7 @@ public abstract class WidgetPanelWithValue<T> extends WidgetPanel implements IVa
 	private ResourceLocation id;
 
 	public WidgetPanelWithValue(T value) {
+		super();
 		this.value = value;
 	}
 

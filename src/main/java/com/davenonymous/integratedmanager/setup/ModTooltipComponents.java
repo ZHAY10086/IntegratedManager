@@ -2,6 +2,7 @@ package com.davenonymous.integratedmanager.setup;
 
 import com.davenonymous.integratedmanager.IntegratedManager;
 
+import com.davenonymous.integratedmanager.gui.NBTTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.*;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -32,5 +33,6 @@ public class ModTooltipComponents {
 		event.register(LeftRightAlignedTooltipComponent.class, Function.identity());
 		event.register(CenteredTooltipComponent.class, Function.identity());
 		event.register(BackgroundTooltipComponent.class, Function.identity());
+		event.register(NBTTooltipComponent.class, Function.identity());
 	}
 }

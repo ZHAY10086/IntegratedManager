@@ -594,52 +594,5 @@ public class ManagerPanel extends WidgetPanningPanel {
 			nodeWidget.setMatchesSearch(matchesAllPart);
 		}
 
-
-
-
-		/* Classic
-		for(ElementSearchables searchable : includeInSearch) {
-			Map<String, Set<Widget>> searchableIndex = SearchIndex.searchIndex.get(searchable);
-
-			boolean matchesAll = true;
-			List<String> matchingTerms = new ArrayList<>();
-			for(String queryPart : queryString.split(" ")) {
-				if (queryPart.isBlank()) {
-					continue; // Skip empty parts
-				}
-
-				for(String rawTerm : searchableIndex.keySet()) {
-					String term = rawTerm;
-					if (!searchCompareCase) {
-						term = term.toLowerCase();
-					}
-
-					if (searchWithRegex) {
-						if (term.matches(queryPart)) {
-							matchingTerms.add(rawTerm);
-						}
-					} else {
-						if (term.contains(queryPart)) {
-							matchingTerms.add(rawTerm);
-						}
-					}
-				}
-			}
-
-			if(!matchingTerms.isEmpty()) {
-				// If all terms match, we can highlight the nodes
-				for(String term : matchingTerms) {
-					Set<Widget> widgets = searchableIndex.get(term);
-					if(widgets != null) {
-						for(Widget widget : widgets) {
-							if(widget instanceof NodeWidget<?> nodeWidget) {
-								nodeWidget.setMatchesSearch(true);
-							}
-						}
-					}
-				}
-			}
-		}
-		**/
 	}
 }

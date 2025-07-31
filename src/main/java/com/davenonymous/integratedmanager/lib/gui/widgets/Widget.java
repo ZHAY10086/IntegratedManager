@@ -482,6 +482,10 @@ public class Widget {
 		//Logz.debug("Drawing widget: %s, x=%d, y=%d, width=%d, height=%d", this, layoutResult.getX(), layoutResult.getY(), layoutResult.getWidth(), layoutResult.getHeight());
 	}
 
+	public void removeEventListeners(Class<? extends IEvent> eventClass) {
+		eventListeners.remove(eventClass);
+	}
+
 	public <T extends IEvent> void addListener(Class<T> eventClass, IWidgetListener<? super T> listener) {
 		if(!eventListeners.containsKey(eventClass)) {
 			eventListeners.put(eventClass, new ArrayList<>());

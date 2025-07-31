@@ -5,6 +5,7 @@ import com.davenonymous.integratedmanager.gui.search.SearchIndex;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import com.davenonymous.integratedmanager.networking.NetworkHelper;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
@@ -27,6 +28,7 @@ public class ValueData extends TypeData {
 	public List<FluidStack> fluidStackValues = new ArrayList<>();
 	public List<ValueData> listValues = new ArrayList<>();
 	public long forgeEnergyValue = 0;
+	public Tag nbtValue;
 
 	public TypeData listType = null;
 
@@ -68,6 +70,7 @@ public class ValueData extends TypeData {
 		this.fluidStackValues = NetworkHelper.readCollection(buf, ArrayList::new, FluidStack.STREAM_CODEC);
 		this.listValues = NetworkHelper.readCollection(buf, ArrayList::new, ValueData.STREAM_CODEC);
 		this.forgeEnergyValue = buf.readLong();
+		this.nbtValue = buf.readNbt();
 
 		if(buf.readBoolean()) {
 			this.listType = TypeData.STREAM_CODEC.decode(buf);
@@ -95,6 +98,7 @@ public class ValueData extends TypeData {
 		NetworkHelper.writeCollection(buf, fluidStackValues, FluidStack.STREAM_CODEC);
 		NetworkHelper.writeCollection(buf, listValues, ValueData.STREAM_CODEC);
 		buf.writeLong(forgeEnergyValue);
+		buf.writeNbt(nbtValue);
 
 		if (listType != null) {
 			buf.writeBoolean(true);

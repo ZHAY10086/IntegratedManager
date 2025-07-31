@@ -43,6 +43,10 @@ public class IngredientTooltipComponent implements TooltipComponent, ClientToolt
 		long time = Minecraft.getInstance().level.getGameTime();
 		long displayTime = time >> 4;
 		ItemStack[] items = this.items.getItems();
+		if(items.length == 0) {
+			return ItemStack.EMPTY; // No items to display
+		}
+
 		int i = (int) (displayTime % items.length);
 		return items[i];
 	}

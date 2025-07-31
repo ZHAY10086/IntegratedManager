@@ -12,6 +12,7 @@ import java.util.List;
 public class VBoxTooltipComponent implements TooltipComponent, ClientTooltipComponent {
 	private final List<TooltipComponent> components = new ArrayList<>();
 	private int padding = 0;
+	private boolean drawBraces = false;
 
 	private BoxAlignment alignment = BoxAlignment.START;
 
@@ -21,6 +22,11 @@ public class VBoxTooltipComponent implements TooltipComponent, ClientTooltipComp
 
 	public VBoxTooltipComponent add(TooltipComponent... component) {
 		this.components.addAll(Arrays.asList(component));
+		return this;
+	}
+
+	public VBoxTooltipComponent setDrawBraces(boolean drawBraces) {
+		this.drawBraces = drawBraces;
 		return this;
 	}
 
@@ -52,10 +58,16 @@ public class VBoxTooltipComponent implements TooltipComponent, ClientTooltipComp
 	public void renderImage(Font font, int x, int y, GuiGraphics guiGraphics) {
 		int currentY = y;
 		int maxWidth = getWidth(font);
+		if(drawBraces) {
+			currentY += 3; // Offset for the left brace
+		}
 
 		for(TooltipComponent component : components) {
 			if(component instanceof ClientTooltipComponent clientComponent) {
 				int xOffset = x;
+				if(drawBraces) {
+					xOffset += 3; // Offset for the left brace
+				}
 				int componentHeight = clientComponent.getWidth(font);
 				if(alignment == BoxAlignment.CENTER) {
 					xOffset += (maxWidth - componentHeight) / 2;
@@ -67,6 +79,13 @@ public class VBoxTooltipComponent implements TooltipComponent, ClientTooltipComp
 				currentY += clientComponent.getHeight() + padding;
 			}
 		}
+
+		if(drawBraces) {
+			int xBrace = x;
+			guiGraphics.fill(xBrace, y, xBrace + 4, y+1, 0x80FFFFFF); // Left brace
+			guiGraphics.fill(xBrace-1, y+1, xBrace, currentY-1, 0x80FFFFFF); // Left brace
+			guiGraphics.fill(xBrace, currentY-1, xBrace + 4, currentY, 0x80FFFFFF); // Bottom left brace
+		}
 	}
 
 	@Override
@@ -76,6 +95,9 @@ public class VBoxTooltipComponent implements TooltipComponent, ClientTooltipComp
 			if(component instanceof ClientTooltipComponent clientComponent) {
 				sum += clientComponent.getHeight() + padding;
 			}
+		}
+		if(drawBraces) {
+			sum += 6; // 3 pixels for the top brace and 3 pixels for the bottom brace
 		}
 		return sum;
 	}

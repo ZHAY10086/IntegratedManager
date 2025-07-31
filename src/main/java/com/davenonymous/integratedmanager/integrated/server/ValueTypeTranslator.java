@@ -131,6 +131,7 @@ public class ValueTypeTranslator {
 		} else if(valueType.correspondsTo(valueTypeNbt)) {
 			ValueTypeNbt.ValueNbt nbtValue = value.cast(valueTypeNbt);
 			if(nbtValue.getRawValue().isPresent()) {
+				valueData.nbtValue = nbtValue.getRawValue().get();
 				valueData.stringValue = nbtValue.getRawValue().get().getAsString();
 			}
 		} else if(valueType.correspondsTo(valueObjectTypeBlock)) {

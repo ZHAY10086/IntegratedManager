@@ -48,14 +48,9 @@ public class ScrollableTooltipComponent implements TooltipComponent, ClientToolt
 			scrollOffset = 0;
 		}
 
-		IntegratedManager.LOGGER.info("Widget={}, offset={}, compHeight={}, maxHeight={}", component.toString(), scrollOffset, component.getHeight(), maxHeight);
-		//		if(-scrollOffset < 0) {
-		//			scrollOffset = 0;
-		//		}
-		//
-		//		if(-scrollOffset > component.getHeight() - maxHeight) {
-		//			scrollOffset = component.getHeight() - maxHeight;
-		//		}
+		if(-scrollOffset * 8 > component.getHeight() - maxHeight) {
+			scrollOffset = -(component.getHeight() - maxHeight) / 8.0f;
+		}
 	}
 
 

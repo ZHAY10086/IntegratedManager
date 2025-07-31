@@ -1,5 +1,6 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
+import com.davenonymous.integratedmanager.gui.NBTTooltipComponent;
 import com.davenonymous.integratedmanager.gui.WidgetFactories;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.TypeData;
@@ -8,6 +9,7 @@ import com.davenonymous.integratedmanager.integrated.common.VariableData;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.*;
 import com.davenonymous.integratedmanager.lib.gui.widgets.WidgetItemStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
@@ -130,11 +132,20 @@ public class VariableFacadeWidget extends NodeWidget<VariableData> {
 				String translatedType = I18n.exists(value.typeTranslationKey) ? I18n.get(value.typeTranslationKey) : value.valueType.toString();
 				String translatedValue = I18n.exists(value.valueTranslationKey) ? I18n.get(value.valueTranslationKey) : value.stringValue;
 
-				table.addRow(
-					StringTooltipComponent.cyan("Output:"),
-					StringTooltipComponent.orange(translatedType),
-					WrappedStringTooltipComponent.green(translatedValue)
-				);
+				if(value.nbtValue != null) {
+					table.addRow(
+						StringTooltipComponent.cyan("Output:"),
+						StringTooltipComponent.orange(translatedType),
+						NBTTooltipComponent.scrolling(value.nbtValue, 40, variableWidget)
+					);
+				} else {
+					table.addRow(
+						StringTooltipComponent.cyan("Output:"),
+						StringTooltipComponent.orange(translatedType),
+						WrappedStringTooltipComponent.green(translatedValue)
+					);
+				}
+
 			}
 
 			if(table.rows() > 0 && variable.scriptingDisk == -1) {
