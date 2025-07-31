@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import org.joml.Vector2f;
 
@@ -453,6 +454,18 @@ public class Widget {
 			}
 		}
 		pGuiGraphics.pose().popPose();
+	}
+
+	public int getMouseX() {
+		var minecraft = Minecraft.getInstance();
+		var window = minecraft.getWindow();
+		return Mth.floor(minecraft.mouseHandler.xpos() * (double)window.getGuiScaledWidth() / (double)window.getScreenWidth()) - this.getActualX();
+	}
+
+	public int getMouseY() {
+		var minecraft = Minecraft.getInstance();
+		var window = minecraft.getWindow();
+		return Mth.floor(minecraft.mouseHandler.ypos() * (double)window.getGuiScaledHeight() / (double)window.getScreenHeight()) - this.getActualY();
 	}
 
 	public void renderExtraDebugInfo(GuiGraphics pGuiGraphics, Screen screen) {
