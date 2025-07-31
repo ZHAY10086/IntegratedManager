@@ -237,6 +237,10 @@ public class VariableData {
 			variableData.aspect = new AspectData(valueTypeVariableFacade.getValueType());
 		}
 
+		for(INetworkAnalyzer analyzer : Analyzers.analyzers) {
+			analyzer.visitVariable(variableFacade, variableData, network, partNetwork);
+		}
+
 		if(variableFacade instanceof IProxyVariableFacade proxyVariableFacade) {
 			variableData.proxyId = proxyVariableFacade.getProxyId();
 			VariableData proxiedVariable = NetworkData.cache().variableDataByProxyId.get(variableData.proxyId);
@@ -250,9 +254,7 @@ public class VariableData {
 			variableData.translationKey = proxiedVariable.translationKey;
 		}
 
-		for(INetworkAnalyzer analyzer : Analyzers.analyzers) {
-			analyzer.visitVariable(variableFacade, variableData, network, partNetwork);
-		}
+
 
 		return variableData;
 	}

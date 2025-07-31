@@ -154,6 +154,12 @@ public class ManagerPanel extends WidgetPanningPanel {
 			return null;
 		}
 
+		if(!ClientGraphConfig.showProxies && tileData.blockEntityClass.equals(("BlockEntityHttp"))) {
+			// This tile entity is a proxy, we do not want to show it in the graph.
+			// Proxies are only used to connect variables to other parts or tiles.
+			//return null;
+		}
+
 		if(tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
 			if(data.variables.stream().noneMatch(VariableData::isUnused)) {
 				// This tile entity is a variable store, but it has no variables that are not referenced by other parts or tiles.
@@ -260,9 +266,17 @@ public class ManagerPanel extends WidgetPanningPanel {
 						if(element.tileData != null) {
 							if(element.tileData.blockEntityClass.equals("BlockEntityVariablestore")) {
 								cableWidget.setIcon(new ItemStack(RegistryEntries.BLOCK_VARIABLE_STORE.get()));
+								cableWidget.setLabelTranslationKey("block.integrateddynamics.variablestore");
 							} else if(element.tileData.blockEntityClass.equals("BlockEntityProxy")) {
+								cableWidget.setValue(element.tileData.proxyId);
 								cableWidget.setIcon(new ItemStack(RegistryEntries.BLOCK_PROXY.get()));
+								cableWidget.setLabelTranslationKey("block.integrateddynamics.proxy");
+							} else if(element.tileData.blockEntityClass.equals("BlockEntityHttp")) {
+								//cableWidget.setValue(element.tileData.proxyId);
+								//cableWidget.setIcon(new ItemStack(RegistryEntries.BLOCK_PROXY.get()));
+								//cableWidget.setLabelTranslationKey("block.integratedrest.http");
 							}
+							cableWidget.updateTooltip();
 						}
 					}
 

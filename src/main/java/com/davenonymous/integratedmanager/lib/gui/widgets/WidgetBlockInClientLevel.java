@@ -1,6 +1,10 @@
 package com.davenonymous.integratedmanager.lib.gui.widgets;
 
 import com.davenonymous.integratedmanager.lib.gui.GUIHelper;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.LabeledLineSeparatorTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.LineSeparatorTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.WrappedStringTooltipComponent;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
@@ -9,6 +13,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.DisplayRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.Item;
@@ -54,14 +59,14 @@ public class WidgetBlockInClientLevel extends WidgetWithValue<BlockPos> {
 
 		ItemStack stack = targetState.getCloneItemStack(fakeHitResult, level, getValue(), Minecraft.getInstance().player);
 		if(!stack.isEmpty()) {
-			var tooltipFlag = Minecraft.getInstance().options.advancedItemTooltips ? TooltipFlag.Default.ADVANCED : TooltipFlag.Default.NORMAL;
-			this.setTooltipLines(stack.getTooltipLines(
-				Item.TooltipContext.EMPTY,
-				Minecraft.getInstance().player,
-				tooltipFlag
-			));
+			this.setTooltipElements(StringTooltipComponent.white(I18n.get(stack.getDescriptionId())));
+			if(I18n.exists(stack.getDescriptionId() + ".info")) {
+				this.addTooltipElement(WrappedStringTooltipComponent.orange(I18n.get(stack.getDescriptionId() + ".info")));
+				this.addTooltipElement(new LineSeparatorTooltipComponent(this));
+			}
 		}
 
+		this.addTooltipElement(StringTooltipComponent.gray(this.getValue().toShortString()));
 	}
 
 	private void drawSlot(GuiGraphics pGuiGraphics, Screen screen) {

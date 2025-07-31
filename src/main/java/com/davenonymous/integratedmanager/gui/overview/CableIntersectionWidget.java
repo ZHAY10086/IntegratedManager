@@ -20,12 +20,19 @@ import java.util.List;
 
 public class CableIntersectionWidget extends NodeWidget<Integer> {
 	public ItemStack iconStack = ItemStack.EMPTY;
+	public String labelTranslationKey = "block.integrateddynamics.cable";
 
 	public CableIntersectionWidget(Integer value) {
 		super(value);
 		this.setSize(6, 6);
 
 		updateTooltip();
+	}
+
+	public CableIntersectionWidget setLabelTranslationKey(String labelTranslationKey) {
+		this.labelTranslationKey = labelTranslationKey;
+		this.updateTooltip();
+		return this;
 	}
 
 	public void updateTooltip() {
@@ -36,11 +43,17 @@ public class CableIntersectionWidget extends NodeWidget<Integer> {
 			var position = firstElement.position;
 			this.addTooltipElement(
 				new LeftRightAlignedTooltipComponent(this,
-					StringTooltipComponent.white(I18n.get(RegistryEntries.ITEM_CABLE.get().getDescriptionId())),
-					StringTooltipComponent.orange("#" + getValue())),
-
-				StringTooltipComponent.gray(position.toShortString())
+					StringTooltipComponent.white(I18n.get(labelTranslationKey)),
+					StringTooltipComponent.orange("#" + getValue()))
 			);
+
+			if(I18n.exists(labelTranslationKey + ".info")) {
+				this.addTooltipElement(
+					StringTooltipComponent.orange(I18n.get(labelTranslationKey + ".info"))
+				);
+			}
+
+			this.addTooltipElement(StringTooltipComponent.gray(position.toShortString()));
 		}
 
 		if(Minecraft.getInstance().options.advancedItemTooltips) {
@@ -69,13 +82,14 @@ public class CableIntersectionWidget extends NodeWidget<Integer> {
 
 	public CableIntersectionWidget setIcon(ItemStack iconStack) {
 		this.iconStack = iconStack;
+		this.setSize(16, 16);
 		return this;
 	}
 
 	@Override
 	public void draw(GuiGraphics guiGraphics, Screen screen) {
 		if(!this.iconStack.isEmpty()) {
-			guiGraphics.renderItem(this.iconStack, -4, -4);
+			guiGraphics.renderItem(this.iconStack, 0, 0);
 		} else {
 			int circleRadius = 4;
 			GUIHelper.drawFilledCircle(guiGraphics, -1.5f, -1.5f, circleRadius, ColorHelper.COLOR_CYAN);
