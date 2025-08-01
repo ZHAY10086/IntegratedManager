@@ -2,7 +2,8 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'idea'
-    id 'net.neoforged.moddev' version '2.0.92'
+    id 'net.neoforged.moddev' version '2.0.101'
+    id "com.github.ben-manes.versions" version "0.52.0"
 }
 
 version = mod_version
@@ -155,6 +156,17 @@ dependencies {
     compileOnly "org.cyclops.integratedrest:integratedrest-${minecraft_version}-neoforge:${integratedrest_version}:deobf"
     runtimeOnly "org.cyclops.integratedrest:integratedrest-${minecraft_version}-neoforge:${integratedrest_version}"
 
+}
+
+tasks.named("dependencyUpdates").configure {
+    rejectVersionIf {
+        // Reject versions that are not compatible with the current Minecraft version.
+        if(it.candidate.group == "net.neoforged") {
+            return false
+        }
+        return !it.candidate.module.contains(minecraft_version)
+
+    }
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

@@ -6,7 +6,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
-@EventBusSubscriber(modid = IntegratedManager.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = IntegratedManager.MODID)
 public class Register {
 	@SubscribeEvent
 	public static void register(final RegisterPayloadHandlersEvent event) {
