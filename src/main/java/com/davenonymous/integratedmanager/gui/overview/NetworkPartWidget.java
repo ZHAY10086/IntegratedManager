@@ -1,6 +1,5 @@
 package com.davenonymous.integratedmanager.gui.overview;
 
-import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.integrated.common.PartData;
 import com.davenonymous.integratedmanager.lib.gui.Icons;

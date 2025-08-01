@@ -4,7 +4,6 @@ import com.davenonymous.integratedmanager.IntegratedManager;
 import com.davenonymous.integratedmanager.gui.search.ElementSearchables;
 import com.davenonymous.integratedmanager.gui.search.SearchIndex;
 import com.davenonymous.integratedmanager.integrated.IDRegistries;
-import com.davenonymous.integratedmanager.integrated.UnknownThings;
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.server.ValueTypeTranslator;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
@@ -41,7 +40,6 @@ public class VariableData {
 	public List<Integer> referencedVariableIds = new ArrayList<>();
 	public List<Integer> referencedPartIds = new ArrayList<>();
 	public int proxyId = -1; // Used for proxy variables, to identify the proxy part
-	public int proxiedVariableId = -1; // Used for proxy variables, to identify the proxied variable
 	public int scriptingDisk = -1; // Used for scripting variables, to identify the disk
 
 	public String scriptingPath;
@@ -107,6 +105,7 @@ public class VariableData {
 		this.aspectProperties = NetworkHelper.readMap(buf, HashMap::new, FriendlyByteBuf::readUtf, ValueData.STREAM_CODEC);
 	}
 
+	@SuppressWarnings("rawtypes")
 	public void addInputType(IValueType inputType) {
 		this.inputTypes.add(new TypeData(inputType));
 	}
@@ -177,7 +176,7 @@ public class VariableData {
 			for(Object propertyObj : aspect.getPropertyTypes()) {
 				if(propertyObj instanceof IAspectPropertyTypeInstance<?, ?> property) {
 					IValue value = aspectProperties.getValue(property);
-					IValue defaultValue = defaultProps.getValue(property);
+					IValue defaultValue = defaultProps == null ? value : defaultProps.getValue(property);
 					try {
 						ValueData valueData = ValueTypeTranslator.translateValueType(value.getType(), value);
 						valueData.isDefaultValue = value.equals(defaultValue);

@@ -2,7 +2,6 @@ package com.davenonymous.integratedmanager.gui.overview;
 
 import com.davenonymous.integratedmanager.integrated.client.NetworkData;
 import com.davenonymous.integratedmanager.integrated.common.IntegratedConnectionType;
-import com.davenonymous.integratedmanager.integrated.common.NetworkElementData;
 import com.davenonymous.integratedmanager.lib.gui.ColorHelper;
 import com.davenonymous.integratedmanager.lib.gui.GUIHelper;
 import com.davenonymous.integratedmanager.lib.gui.tooltip.LabeledLineSeparatorTooltipComponent;
@@ -13,10 +12,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.world.item.ItemStack;
-import org.cyclops.integrateddynamics.RegistryEntries;
-
-import java.util.List;
 
 public class OmniIntersectionWidget extends NodeWidget<Integer> {
 	public OmniIntersectionWidget(Integer value) {

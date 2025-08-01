@@ -1,8 +1,10 @@
 package com.davenonymous.integratedmanager.gui;
 
-import com.davenonymous.integratedmanager.lib.gui.tooltip.*;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.HBoxTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.ScrollableTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.StringTooltipComponent;
+import com.davenonymous.integratedmanager.lib.gui.tooltip.VBoxTooltipComponent;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;

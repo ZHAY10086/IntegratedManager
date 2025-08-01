@@ -3,7 +3,6 @@ package com.davenonymous.integratedmanager.integrated.common;
 import com.davenonymous.integratedmanager.gui.search.SearchIndex;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;

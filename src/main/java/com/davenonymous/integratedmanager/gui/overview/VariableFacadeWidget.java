@@ -19,7 +19,6 @@ import java.util.List;
 
 public class VariableFacadeWidget extends NodeWidget<VariableData> {
 	WidgetItemStack variableWidget;
-	String searchHaystack = "";
 
 	public VariableFacadeWidget(VariableData variable) {
 		super(variable);

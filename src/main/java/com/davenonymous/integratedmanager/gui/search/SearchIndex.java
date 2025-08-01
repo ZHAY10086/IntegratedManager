@@ -1,11 +1,16 @@
 package com.davenonymous.integratedmanager.gui.search;
 
-import com.davenonymous.integratedmanager.IntegratedManager;
-import com.davenonymous.integratedmanager.gui.overview.*;
+import com.davenonymous.integratedmanager.gui.overview.NetworkPartWidget;
+import com.davenonymous.integratedmanager.gui.overview.NetworkTileWidget;
+import com.davenonymous.integratedmanager.gui.overview.PartTargetWidget;
+import com.davenonymous.integratedmanager.gui.overview.VariableFacadeWidget;
 import com.davenonymous.integratedmanager.integrated.common.ValueData;
 import com.davenonymous.integratedmanager.lib.gui.widgets.Widget;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class SearchIndex {
 	public static Map<ElementSearchables, Map<String, Set<Widget>>> searchIndex = new HashMap<>();
