@@ -76,25 +76,25 @@ public class NetworkAnalysis {
 
 		BlockEntity blockEntity = level.getBlockEntity(pos);
 		if (blockEntity == null) {
-			IntegratedManager.LOGGER.warn("ManagerTabletItem used on a block without a BlockEntity: {}", state.getBlock().getDescriptionId());
+			IntegratedManager.LOGGER.debug("ManagerTabletItem used on a block without a BlockEntity: {}", state.getBlock().getDescriptionId());
 			throw new IllegalArgumentException("BlockEntity is null at " + pos + " for block " + state.getBlock().getDescriptionId());
 		}
 
 		carrier = level.getCapability(NETWORK_CARRIER, pos, state, blockEntity, side);
 		if (carrier == null) {
-			IntegratedManager.LOGGER.warn("ManagerTabletItem used on a block that does not implement INetworkCarrier: {}", blockEntity.getClass());
+			IntegratedManager.LOGGER.debug("ManagerTabletItem used on a block that does not implement INetworkCarrier: {}", blockEntity.getClass());
 			throw new IllegalArgumentException("BlockEntity does not implement INetworkCarrier at " + pos + " for block " + state.getBlock().getDescriptionId());
 		}
 
 		network = carrier.getNetwork();
 		if (network == null) {
-			IntegratedManager.LOGGER.warn("ManagerTabletItem used on a block that does not have a network: {}", blockEntity.getClass());
+			IntegratedManager.LOGGER.debug("ManagerTabletItem used on a block that does not have a network: {}", blockEntity.getClass());
 			throw new IllegalArgumentException("Network is null at " + pos + " for block " + state.getBlock().getDescriptionId());
 		}
 
 		Optional<IPartNetwork> optPartNetwork = network.getCapability(PART_NETWORK);
 		if (optPartNetwork.isEmpty()) {
-			IntegratedManager.LOGGER.warn("ManagerTabletItem used on a network that does not have a tile network: {}", network.getClass());
+			IntegratedManager.LOGGER.debug("ManagerTabletItem used on a network that does not have a tile network: {}", network.getClass());
 			throw new IllegalArgumentException("PartNetwork is null at " + pos + " for block " + state.getBlock().getDescriptionId());
 		}
 

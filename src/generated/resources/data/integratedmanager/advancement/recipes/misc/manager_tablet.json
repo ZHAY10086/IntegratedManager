@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_mono_connector": {
+      "conditions": {
+        "items": [
+          {
+            "items": "integrateddynamics:part_connector_mono_directional"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "integratedmanager:manager_tablet"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_mono_connector"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "integratedmanager:manager_tablet"
+    ]
+  }
+}

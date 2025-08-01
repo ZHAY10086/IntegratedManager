@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "d": {
+      "item": "integrateddynamics:part_display_panel"
+    },
+    "o": {
+      "item": "integrateddynamics:part_connector_mono_directional"
+    },
+    "p": {
+      "item": "integrateddynamics:portable_logic_programmer"
+    },
+    "s": {
+      "item": "integrateddynamics:variablestore"
+    }
+  },
+  "pattern": [
+    " s ",
+    "dpd",
+    " o "
+  ],
+  "result": {
+    "count": 1,
+    "id": "integratedmanager:manager_tablet"
+  }
+}
