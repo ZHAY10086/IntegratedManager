@@ -1,0 +1,87 @@
+{
+  "itemGroup.integratedmanager": "联合管理器",
+	"item.integratedmanager.manager_tablet": "管理平板",
+	"integratedmanager.network_analysis.error": "不是有效的动态联合网络",
+
+	"integratedmanager.message.advanced_tooltips": "额外信息（F3+H切换开关）",
+	"integratedmanager.message.unknown_variable_type": "未知变量类型：%s",
+	"integratedmanager.message.unused_variables": "未使用的变量",
+	"integratedmanager.message.scroll_for_aspect_details": "滚动查看切面详情",
+	"integratedmanager.message.scroll_to_select_then_click_to_place": "滚动选择，然后点击放置",
+	"integratedmanager.message.scroll_to_select_then_choose_a_variable_to_connect": "滚动选择，然后选择要连接的变量",
+	"integratedmanager.message.properties": "属性",
+	"integratedmanager.message.variable_id": "变量ID",
+	"integratedmanager.message.class_name": "类",
+	"integratedmanager.message.node": "节点",
+	"integratedmanager.message.connection": "连接",
+	"integratedmanager.message.position": "位置",
+	"integratedmanager.message.omni_group": "全向连接组",
+	"integratedmanager.message.integrated_script": "联合脚本",
+	"integratedmanager.message.rest_variable": "HTTP REST变量",
+
+
+	"integratedmanager.searchtoggles.case": "aA",
+	"integratedmanager.searchtoggles.case.info": "搜索时匹配大小写。",
+
+	"integratedmanager.searchtoggles.regex": ".*",
+	"integratedmanager.searchtoggles.regex.info": "使用正则表达式搜索。",
+
+	"integratedmanager.searchtoggles.variables": "变量",
+	"integratedmanager.searchtoggles.variables.info": "搜索网络中的变量。",
+
+	"integratedmanager.searchtoggles.part": "部件",
+	"integratedmanager.searchtoggles.part.info": "搜索网络中的网络部件。",
+
+	"integratedmanager.searchtoggles.tile": "方块",
+	"integratedmanager.searchtoggles.tile.info": "搜索网络中的网络方块。",
+
+	"integratedmanager.searchtoggles.aspects": "切面",
+	"integratedmanager.searchtoggles.aspects.info": "搜索网络中的切面。",
+
+	"integratedmanager.searchtoggles.id": "ID",
+	"integratedmanager.searchtoggles.id.info": "搜索ID",
+
+	"integratedmanager.searchtoggles.value": "值",
+	"integratedmanager.searchtoggles.value.info": "按值搜索元素",
+
+
+
+
+
+	"integratedmanager.configuration.title": "联合管理器配置",
+
+	"integratedmanager.configuration.debug": "调试",
+	"integratedmanager.configuration.debug.tooltip": "调试与开发相关的选项。\n这些选项主要用于调试图形流程问题。",
+
+	"integratedmanager.configuration.debug.show_velocities": "显示速度向量",
+	"integratedmanager.configuration.debug.show_velocities.tooltip": "显示网络中节点的速度向量。",
+
+	"integratedmanager.configuration.debug.show_all_edges": "显示所有边",
+	"integratedmanager.configuration.debug.show_all_edges.tooltip": "显示网络中的所有边，即使其与动态联合网络无关。",
+
+	"integratedmanager.configuration.debug.settle_graph": "稳定图形",
+	"integratedmanager.configuration.debug.settle_graph.tooltip": "使图形稳定，即运行图形直到其处于稳定状态。",
+
+	"integratedmanager.configuration.debug.auto_advance_graph": "自动优化图形布局",
+	"integratedmanager.configuration.debug.auto_advance_graph.tooltip": "自动优化图形布局。\n若禁用，则需要通过GUI中的播放按钮手动优化布局。",
+
+	"integratedmanager.configuration.debug.settle_initial_steps": "初始稳定步数",
+	"integratedmanager.configuration.debug.settle_initial_steps.tooltip": "初始稳定图形时执行的步数。\n仅在启用“稳定图形”时生效。",
+
+	"integratedmanager.configuration.debug.settle_optional_steps": "可选稳定步数",
+	"integratedmanager.configuration.debug.settle_optional_steps.tooltip": "稳定图形时执行的可选步数。\n仅在启用“稳定图形”时生效。",
+
+
+	"integratedmanager.configuration.clientgraph": "图形",
+	"integratedmanager.configuration.clientgraph.tooltip": "网络可视化相关的客户端选项。",
+
+	"integratedmanager.configuration.clientgraph.show_proxies": "显示代理",
+	"integratedmanager.configuration.clientgraph.show_proxies.tooltip": "不要在图形中折叠代理节点。",
+
+	"integratedmanager.configuration.clientgraph.show_recipe_variables": "显示配方变量",
+	"integratedmanager.configuration.clientgraph.show_recipe_variables.tooltip": "通常情况下，配方变量会显示在其对应的合成节点中。\n该选项将在图形中也显示配方变量。",
+
+
+
+	"--last-line-comma-protection--": ","
+}
